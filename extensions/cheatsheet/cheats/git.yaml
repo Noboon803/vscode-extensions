@@ -1,0 +1,36 @@
+name: git
+cheats:
+  - title: 直前のコミットを修正
+    description: メッセージや内容を直前のコミットに反映します。
+    code: git commit --amend
+    notes: push 済みのコミットを修正すると履歴が変わるので注意してください。
+  - title: ブランチを作成して切り替え
+    code: git switch -c feature/my-branch
+  - title: 変更を一時退避
+    description: 作業中の変更を退避し、あとで戻します。
+    code: |
+      git stash push -m "作業中"
+      git stash pop
+    notes: 未追跡ファイルも退避するには -u を付けます。
+  - title: コミット履歴を検索
+    description: 条件を入力すると、コマンドに反映されます。
+    code: git log --oneline
+    options:
+      - flag: --author
+        label: 作成者
+        placeholder: 名前
+        separator: "="
+      - flag: --since
+        label: 開始日
+        placeholder: "2026-01-01"
+        separator: "="
+      - flag: --grep
+        label: メッセージ
+        placeholder: fix
+        separator: "="
+      - flag: -n
+        label: 件数
+        default: 20
+      - flag: --all
+        label: 全ブランチ
+        type: flag

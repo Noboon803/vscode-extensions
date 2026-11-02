@@ -1,0 +1,316 @@
+body {
+  padding: 0;
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--vscode-panel-background, var(--vscode-sideBar-background));
+  border-bottom: 1px solid var(--vscode-panel-border, transparent);
+}
+
+select {
+  min-width: 0;
+  padding: 3px 6px;
+  color: var(--vscode-dropdown-foreground);
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border, transparent);
+  border-radius: 2px;
+  font: inherit;
+}
+
+/* 幅が狭くても折り返さず、チートをカテゴリの右に保つ */
+#category {
+  flex: 0 1 120px;
+}
+
+#cheat {
+  flex: 1 1 0;
+  max-width: 360px;
+}
+
+select:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+#cheat-detail {
+  padding: 12px;
+}
+
+.cheat {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+  border-radius: 4px;
+}
+
+.cheat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cheat-actions {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+
+.icon-button {
+  flex: none;
+  padding: 0 4px;
+  color: var(--vscode-descriptionForeground);
+  background: none;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 1.2em;
+  line-height: 1.3;
+}
+
+.icon-button:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+}
+
+.icon-button:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+}
+
+.favorite[aria-pressed='true'] {
+  color: var(--vscode-charts-yellow, var(--vscode-foreground));
+}
+
+.empty {
+  margin: 0;
+  color: var(--vscode-descriptionForeground);
+}
+
+.cheat-title {
+  margin: 0;
+  font-size: 1.05em;
+  font-weight: 600;
+}
+
+.cheat-description,
+.cheat-notes {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+.cheat-notes {
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.92em;
+}
+
+.options {
+  display: grid;
+  /* オプションと組み合わせは別のグリッドなので、ラベルの幅を固定して入力欄の左端を揃える */
+  grid-template-columns: min(14em, 40%) minmax(0, 320px);
+  gap: 4px 8px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.option-label {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.option-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option-flag {
+  margin-right: 6px;
+  padding: 0;
+  color: var(--vscode-editor-foreground);
+  background: none;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+}
+
+.option-text {
+  color: var(--vscode-descriptionForeground);
+}
+
+.option-required {
+  flex: none;
+  margin-left: 2px;
+  color: var(--vscode-errorForeground);
+}
+
+.option-input[type='text'] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 2px 6px;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 2px;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+}
+
+.option-input[type='text']::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.option-input[type='checkbox'] {
+  justify-self: start;
+  margin: 0;
+  accent-color: var(--vscode-button-background);
+}
+
+.option-input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 10;
+  box-sizing: border-box;
+  max-width: min(480px, calc(100vw - 8px));
+  padding: 3px 7px;
+  color: var(--vscode-editorHoverWidget-foreground);
+  background: var(--vscode-editorHoverWidget-background);
+  border: 1px solid var(--vscode-editorHoverWidget-border);
+  border-radius: 3px;
+  box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.command-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.command-row .cheat-code {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+}
+
+.techniques {
+  margin: 8px 0;
+}
+
+.techniques summary {
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+}
+
+.techniques summary:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+}
+
+/* 幅が狭いときは入力欄を次の行へ送り、選択肢の文字が切れないようにする */
+.technique-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  min-width: 0;
+}
+
+.technique-select {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.technique-argument[type='text'] {
+  flex: 1 1 120px;
+  width: auto;
+  min-width: 0;
+}
+
+.technique-argument[hidden] {
+  display: none;
+}
+
+.send {
+  flex: none;
+  padding: 6px 12px;
+  color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
+  background: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 2px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.send:hover {
+  background: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-hoverBackground));
+}
+
+.send:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
+.cheat-code {
+  margin: 6px 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  background: var(--vscode-textCodeBlock-background);
+  border-radius: 3px;
+}
+
+.cheat-code code {
+  padding: 0;
+  background: none;
+  color: var(--vscode-editor-foreground);
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  white-space: pre;
+}
+
+/* 構文ハイライト。Webview からはエディタの配色を読めないので、テーマの色変数で近づける */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal {
+  color: var(--vscode-symbolIcon-keywordForeground, var(--vscode-editor-foreground));
+}
+
+.hljs-built_in,
+.hljs-title,
+.hljs-section {
+  color: var(--vscode-symbolIcon-functionForeground, var(--vscode-editor-foreground));
+}
+
+.hljs-string,
+.hljs-regexp {
+  color: var(--vscode-debugTokenExpression-string, var(--vscode-editor-foreground));
+}
+
+.hljs-number {
+  color: var(--vscode-debugTokenExpression-number, var(--vscode-editor-foreground));
+}
+
+.hljs-variable,
+.hljs-template-variable,
+.hljs-attr,
+.hljs-attribute {
+  color: var(--vscode-symbolIcon-variableForeground, var(--vscode-editor-foreground));
+}
+
+.hljs-comment,
+.hljs-meta {
+  color: var(--vscode-descriptionForeground);
+  font-style: italic;
+}

@@ -1,0 +1,12 @@
+{
+  "folders": [
+    { "name": "cheatsheet", "path": "extensions/cheatsheet" },
+    { "name": "workspace-root", "path": "." }
+  ],
+  "settings": {
+    // 拡張機能はそれぞれ独立したフォルダとして開くので、ルート側には重複して出さない
+    "files.exclude": { "extensions": true },
+    // この設定はフォルダごとに持てない
+    "typescript.tsdk": "node_modules/typescript/lib"
+  }
+}

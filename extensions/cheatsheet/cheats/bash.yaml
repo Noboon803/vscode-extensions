@@ -1,0 +1,23 @@
+name: bash
+cheats:
+  - title: ファイル内の文字列を検索
+    description: ディレクトリ以下を再帰的に検索します。
+    code: grep -rn "keyword" ./src
+  - title: 直前のコマンドの引数を再利用
+    code: |
+      mkdir my-dir
+      cd !$
+    notes: "!$ は直前のコマンドの最後の引数に展開されます。"
+  - title: ファイルを探す
+    description: 条件を入力すると、コマンドに反映されます。
+    code: find
+    options:
+      - label: 検索先
+        required: true
+        default: .
+      - flag: -name
+        label: 名前
+        placeholder: "*.log"
+      - flag: -mtime
+        label: 更新日
+        placeholder: -7

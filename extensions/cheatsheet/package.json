@@ -1,0 +1,93 @@
+{
+  "name": "cheatsheet",
+  "displayName": "Cheatsheet",
+  "description": "VS Code 上にチートシートを表示する拡張機能",
+  "version": "0.0.1",
+  "publisher": "noboon",
+  "private": true,
+  "engines": {
+    "vscode": "^1.144.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "cheatsheet.show",
+        "title": "チートシートを表示",
+        "category": "Cheatsheet"
+      },
+      {
+        "command": "cheatsheet.toggle",
+        "title": "チートシートの表示を切り替え",
+        "category": "Cheatsheet"
+      },
+      {
+        "command": "cheatsheet.openContentFolder",
+        "title": "YAML フォルダを開く",
+        "category": "Cheatsheet"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "cheatsheet.toggle",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+j"
+      }
+    ],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "cheatsheet",
+          "title": "チートシート",
+          "icon": "$(notebook)"
+        }
+      ]
+    },
+    "views": {
+      "cheatsheet": [
+        {
+          "id": "cheatsheet.view",
+          "type": "webview",
+          "name": "チートシート",
+          "icon": "$(notebook)"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Cheatsheet",
+      "properties": {
+        "cheatsheet.contentPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "チートシートの YAML を置くフォルダ。`~` を使えます。空の場合は拡張機能のユーザー領域を使います（`Cheatsheet: YAML フォルダを開く` で開けます）。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.mjs",
+    "package": "npm run check-types && npm run lint && node esbuild.mjs --production",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.mjs --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "compile-tests": "tsc -p . --outDir out",
+    "pretest": "npm run compile-tests && npm run compile",
+    "test": "vscode-test",
+    "vsix": "vsce package --no-dependencies --allow-missing-repository --skip-license"
+  },
+  "devDependencies": {
+    "@types/vscode": "~1.144.0"
+  },
+  "dependencies": {
+    "highlight.js": "^11.12.0",
+    "yaml": "^2.9.1"
+  }
+}
