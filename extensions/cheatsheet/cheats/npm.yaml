@@ -1,0 +1,96 @@
+name: npm
+cheats:
+  - title: パッケージをインストール
+    code: npm install
+    options:
+      - flag: -D
+        label: 開発用
+        type: flag
+      - flag: -g
+        label: グローバル
+        type: flag
+      - label: パッケージ
+        placeholder: lodash
+    notes: パッケージを省略すると package.json の内容をインストールします。
+  - title: ロックファイルどおりにインストール
+    description: package-lock.json に従ってインストールします。CI に向いています。
+    code: npm ci
+    notes: 既存の node_modules は削除されます。
+  - title: パッケージを削除
+    code: npm uninstall
+    options:
+      - label: パッケージ
+        required: true
+        placeholder: lodash
+  - title: スクリプトを実行
+    code: npm run
+    options:
+      - label: スクリプト
+        placeholder: build
+      - flag: -w
+        label: ワークスペース
+        placeholder: my-package
+    notes: スクリプトを省略すると一覧を表示します。
+  - title: テストを実行
+    code: npm test
+  - title: プロジェクトを初期化
+    code: npm init -y
+    notes: -y を付けると、質問なしで package.json を作ります。
+  - title: インストール済みの一覧
+    code: npm ls
+    options:
+      - flag: --depth
+        label: 階層
+        default: 0
+      - flag: -g
+        label: グローバル
+        type: flag
+  - title: 更新できるパッケージを確認
+    code: npm outdated
+  - title: パッケージを更新
+    code: npm update
+    options:
+      - label: パッケージ
+        placeholder: lodash
+  - title: パッケージの情報を確認
+    code: npm view
+    options:
+      - label: パッケージ
+        required: true
+        placeholder: lodash
+      - label: 項目
+        placeholder: version
+  - title: パッケージを一時的に実行
+    code: npx
+    options:
+      - label: パッケージ
+        required: true
+        placeholder: cowsay
+      - label: 引数
+        placeholder: hello
+  - title: 脆弱性を確認
+    code: npm audit
+    options:
+      - flag: --omit
+        label: 除外する種類
+        placeholder: dev
+        separator: "="
+  - title: 脆弱性を修正
+    code: npm audit fix
+    notes: --force を付けると破壊的な更新も適用します。
+  - title: バージョンを上げる
+    code: npm version
+    options:
+      - label: 種類
+        required: true
+        placeholder: patch
+    notes: Git リポジトリでは、コミットとタグも作ります。
+  - title: 公開内容を確認
+    description: 実際には公開せず、含まれるファイルを確認します。
+    code: npm publish --dry-run
+  - title: パッケージをファイルにまとめる
+    code: npm pack
+  - title: 設定を確認
+    code: npm config list
+  - title: レジストリにログイン
+    code: npm login

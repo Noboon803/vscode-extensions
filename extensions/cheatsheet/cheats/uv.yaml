@@ -1,0 +1,130 @@
+name: uv
+cheats:
+  - title: プロジェクトを作成
+    code: uv init
+    options:
+      - flag: --python
+        label: Python のバージョン
+        placeholder: "3.12"
+      - flag: --lib
+        label: ライブラリとして作成
+        type: flag
+      - label: 名前
+        placeholder: my-project
+  - title: パッケージを追加
+    code: uv add
+    options:
+      - flag: --dev
+        label: 開発用
+        type: flag
+      - label: パッケージ
+        required: true
+        placeholder: requests
+  - title: パッケージを削除
+    code: uv remove
+    options:
+      - flag: --dev
+        label: 開発用
+        type: flag
+      - label: パッケージ
+        required: true
+        placeholder: requests
+  - title: 環境を同期
+    description: ロックファイルの内容に合わせて仮想環境を更新します。
+    code: uv sync
+    options:
+      - flag: --frozen
+        label: ロックファイルを更新しない
+        type: flag
+      - flag: --no-dev
+        label: 開発用を除く
+        type: flag
+      - flag: --all-extras
+        label: すべての extra を含める
+        type: flag
+  - title: コマンドを実行
+    description: 環境を同期してから、プロジェクトの環境で実行します。
+    code: uv run
+    options:
+      - flag: --with
+        label: 一時的に追加するパッケージ
+        placeholder: rich
+      - label: コマンド
+        required: true
+        placeholder: main.py
+  - title: ロックファイルを更新
+    code: uv lock
+    options:
+      - flag: --upgrade
+        label: すべて最新へ更新
+        type: flag
+      - flag: --upgrade-package
+        label: 更新するパッケージ
+        placeholder: requests
+  - title: 依存関係のツリーを表示
+    code: uv tree
+  - title: requirements.txt に書き出す
+    code: uv export --format requirements-txt
+    options:
+      - flag: -o
+        label: 出力先
+        default: requirements.txt
+      - flag: --no-hashes
+        label: ハッシュを含めない
+        type: flag
+  - title: 仮想環境を作成
+    code: uv venv
+    options:
+      - flag: --python
+        label: Python のバージョン
+        placeholder: "3.12"
+      - label: フォルダ
+        placeholder: .venv
+  - title: Python をインストール
+    code: uv python install
+    options:
+      - label: バージョン
+        placeholder: "3.12"
+  - title: Python の一覧
+    code: uv python list
+  - title: プロジェクトの Python を固定
+    description: .python-version を作成します。
+    code: uv python pin
+    options:
+      - label: バージョン
+        required: true
+        placeholder: "3.12"
+  - title: pip 互換でインストール
+    code: uv pip install
+    options:
+      - flag: -r
+        label: 要件ファイル
+        placeholder: requirements.txt
+      - label: パッケージ
+        placeholder: requests
+  - title: pip 互換で一覧を表示
+    code: uv pip list
+  - title: ツールを一時的に実行
+    description: インストールせずにコマンドラインツールを実行します。
+    code: uvx
+    options:
+      - label: ツール
+        required: true
+        placeholder: ruff
+      - label: 引数
+        placeholder: check
+  - title: ツールをインストール
+    code: uv tool install
+    options:
+      - label: ツール
+        required: true
+        placeholder: ruff
+  - title: インストール済みのツール一覧
+    code: uv tool list
+  - title: パッケージをビルド
+    code: uv build
+  - title: キャッシュを削除
+    code: uv cache clean
+  - title: uv を更新
+    code: uv self update
+    notes: 公式のインストーラーで入れた場合に使えます。Homebrew などで入れた場合は、そちらで更新します。

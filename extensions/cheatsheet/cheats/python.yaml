@@ -1,0 +1,98 @@
+name: python
+cheats:
+  - title: バージョンを確認
+    code: python3 --version
+  - title: 仮想環境を作成
+    code: python3 -m venv
+    options:
+      - label: フォルダ
+        required: true
+        default: .venv
+  - title: 仮想環境を有効化
+    code: source .venv/bin/activate
+    notes: 無効にするには deactivate を実行します。Windows の PowerShell では .venv\Scripts\Activate.ps1 です。
+  - title: スクリプトを実行
+    code: python3
+    options:
+      - flag: -i
+        label: 実行後に対話モードへ
+        type: flag
+      - label: スクリプト
+        required: true
+        placeholder: main.py
+      - label: 引数
+        placeholder: input.txt
+  - title: モジュールを実行
+    code: python3 -m
+    options:
+      - label: モジュール
+        required: true
+        placeholder: my_package
+      - label: 引数
+        placeholder: --help
+  - title: 1 行のコードを実行
+    code: python3 -c
+    options:
+      - label: コード
+        required: true
+        default: print('hello')
+  - title: 簡易 Web サーバーを起動
+    description: 現在のフォルダを HTTP で公開します。開発用です。
+    code: python3 -m http.server
+    options:
+      - label: ポート
+        default: 8000
+      - flag: --bind
+        label: 待ち受けるアドレス
+        default: 127.0.0.1
+      - flag: --directory
+        label: 公開するフォルダ
+        placeholder: ./public
+    notes: --bind を省略すると、同じネットワークの他の端末からも見られます。
+  - title: JSON を整形
+    code: python3 -m json.tool
+    options:
+      - label: ファイル
+        required: true
+        placeholder: data.json
+  - title: テストを実行
+    description: test*.py を探して unittest を実行します。
+    code: python3 -m unittest discover
+    options:
+      - flag: -v
+        label: 詳細を表示
+        type: flag
+      - flag: -s
+        label: 開始フォルダ
+        placeholder: tests
+  - title: デバッガーで実行
+    code: python3 -m pdb
+    options:
+      - label: スクリプト
+        required: true
+        placeholder: main.py
+  - title: 処理時間を計測
+    code: python3 -m timeit
+    options:
+      - flag: -n
+        label: 繰り返す回数
+        placeholder: 1000
+      - label: コード
+        required: true
+        default: sum(range(100))
+  - title: pip を実行
+    description: 今の python3 に対応する pip を確実に使います。
+    code: python3 -m pip
+    options:
+      - label: サブコマンド
+        required: true
+        default: list
+  - title: パッケージの検索パスを確認
+    code: python3 -m site
+  - title: 構文を確認
+    description: 実行せずに、ファイルをコンパイルして構文エラーを確認します。
+    code: python3 -m py_compile
+    options:
+      - label: ファイル
+        required: true
+        placeholder: main.py

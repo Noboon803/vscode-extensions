@@ -21,3 +21,186 @@ cheats:
       - flag: -mtime
         label: 更新日
         placeholder: -7
+  - title: ファイルの一覧
+    code: ls
+    options:
+      - flag: -l
+        label: 詳細を表示
+        type: flag
+        default: true
+      - flag: -a
+        label: 隠しファイルも表示
+        type: flag
+        default: true
+      - flag: -h
+        label: サイズを読みやすく
+        type: flag
+      - label: パス
+        placeholder: ./src
+  - title: フォルダを作成
+    code: mkdir -p
+    options:
+      - label: パス
+        required: true
+        placeholder: path/to/dir
+    notes: -p を付けると途中のフォルダもまとめて作ります。
+  - title: コピー
+    code: cp
+    options:
+      - flag: -r
+        label: フォルダごと
+        type: flag
+      - label: コピー元
+        required: true
+        placeholder: src
+      - label: コピー先
+        required: true
+        placeholder: backup
+  - title: 移動・名前の変更
+    code: mv
+    options:
+      - label: 移動元
+        required: true
+        placeholder: old.txt
+      - label: 移動先
+        required: true
+        placeholder: new.txt
+  - title: 削除
+    code: rm
+    options:
+      - flag: -r
+        label: フォルダごと
+        type: flag
+      - flag: -i
+        label: 確認しながら
+        type: flag
+        default: true
+      - label: パス
+        required: true
+        placeholder: old.txt
+    notes: 削除したファイルは元に戻せません。
+  - title: ファイルの先頭を表示
+    code: head
+    options:
+      - flag: -n
+        label: 行数
+        default: 20
+      - label: ファイル
+        required: true
+        placeholder: app.log
+  - title: ファイルの末尾を表示
+    code: tail
+    options:
+      - flag: -n
+        label: 行数
+        default: 20
+      - flag: -f
+        label: 追記を監視
+        type: flag
+      - label: ファイル
+        required: true
+        placeholder: app.log
+    notes: -f の監視は Ctrl+C で止めます。
+  - title: 行数を数える
+    code: wc -l
+    options:
+      - label: ファイル
+        required: true
+        placeholder: app.log
+  - title: 重複を除いて件数を集計
+    description: 同じ行の件数を、多い順に並べます。
+    code: sort app.log | uniq -c | sort -rn
+  - title: 文字列を置換して表示
+    description: 結果を表示するだけで、ファイルは変更しません。
+    code: sed 's/old/new/g' file.txt
+    notes: ファイルを直接書き換える -i は、macOS と Linux で書き方が違います。
+  - title: 特定の列を取り出す
+    description: 空白で区切った 1 列目を表示します。
+    code: awk '{print $1}' file.txt
+  - title: 検索結果を別のコマンドに渡す
+    code: find . -name '*.log' -print0 | xargs -0 wc -l
+    notes: -print0 と -0 を組み合わせると、空白を含むファイル名も扱えます。
+  - title: 権限を変更
+    code: chmod
+    options:
+      - label: 権限
+        required: true
+        placeholder: +x
+      - label: パス
+        required: true
+        placeholder: script.sh
+  - title: プロセスを探す
+    code: ps aux | grep node
+  - title: プロセスを終了
+    code: kill
+    options:
+      - label: プロセス ID
+        required: true
+        placeholder: 12345
+    notes: 終了しないときは kill -9 で強制終了できますが、後始末は行われません。
+  - title: ディスクの空きを確認
+    code: df -h
+  - title: フォルダのサイズを確認
+    code: du -sh
+    options:
+      - label: パス
+        default: .
+  - title: tar で圧縮
+    code: tar -czf
+    options:
+      - label: 圧縮ファイル
+        required: true
+        placeholder: backup.tar.gz
+      - label: 対象
+        required: true
+        placeholder: src
+  - title: tar を展開
+    code: tar -xzf
+    options:
+      - label: 圧縮ファイル
+        required: true
+        placeholder: backup.tar.gz
+      - flag: -C
+        label: 展開先
+        placeholder: ./out
+  - title: HTTP リクエストを送る
+    code: curl
+    options:
+      - flag: -s
+        label: 進捗を非表示
+        type: flag
+      - flag: -L
+        label: リダイレクトをたどる
+        type: flag
+      - flag: -o
+        label: 保存先
+        placeholder: out.json
+      - label: URL
+        required: true
+        placeholder: https://example.com
+  - title: リモートに SSH 接続
+    code: ssh
+    options:
+      - flag: -p
+        label: ポート
+        placeholder: 22
+      - flag: -i
+        label: 秘密鍵
+        placeholder: ~/.ssh/id_ed25519
+      - label: 接続先
+        required: true
+        placeholder: user@example.com
+  - title: 環境変数を設定
+    code: export MY_VAR=value
+    notes: 今のシェルとその子プロセスだけに有効です。
+  - title: コマンドの場所を確認
+    code: command -v
+    options:
+      - label: コマンド
+        required: true
+        placeholder: node
+  - title: ファイルごとに繰り返す
+    code: |
+      for f in *.txt; do
+        echo "$f"
+      done

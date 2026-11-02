@@ -34,3 +34,177 @@ cheats:
       - flag: --all
         label: 全ブランチ
         type: flag
+  - title: 状態を確認
+    code: git status
+    options:
+      - flag: -s
+        label: 短い形式
+        type: flag
+      - flag: -b
+        label: ブランチも表示
+        type: flag
+  - title: 差分を確認
+    code: git diff
+    options:
+      - flag: --staged
+        label: ステージ済みの差分
+        type: flag
+      - flag: --stat
+        label: 変更量だけ
+        type: flag
+      - label: パス
+        placeholder: src/
+  - title: 変更をステージ
+    code: git add
+    options:
+      - flag: -p
+        label: 変更単位で選ぶ
+        type: flag
+      - label: パス
+        required: true
+        default: .
+  - title: コミット
+    code: git commit
+    options:
+      - flag: -a
+        label: 追跡中の変更をすべて含める
+        type: flag
+      - flag: -m
+        label: メッセージ
+        required: true
+        placeholder: fix typo
+  - title: ブランチの一覧
+    code: git branch
+    options:
+      - flag: -a
+        label: リモートも含める
+        type: flag
+      - flag: -v
+        label: 最新のコミットも表示
+        type: flag
+  - title: ブランチを切り替え
+    code: git switch
+    options:
+      - label: ブランチ
+        required: true
+        placeholder: main
+  - title: ブランチを削除
+    description: 統合済みのブランチを削除します。
+    code: git branch -d
+    options:
+      - label: ブランチ
+        required: true
+        placeholder: feature/my-branch
+    notes: 未統合のブランチも削除するには -D を使います。未統合のコミットを失う可能性があります。
+  - title: リモートから取り込む
+    code: git pull
+    options:
+      - flag: --rebase
+        label: マージせずリベース
+        type: flag
+      - label: リモート
+        placeholder: origin
+      - label: ブランチ
+        placeholder: main
+  - title: リモートへ送る
+    code: git push
+    options:
+      - flag: -u
+        label: 追跡先を設定
+        type: flag
+      - flag: --force-with-lease
+        label: 安全に強制 push
+        type: flag
+      - label: リモート
+        placeholder: origin
+      - label: ブランチ
+        placeholder: main
+    notes: 強制 push はリモートの履歴を書き換えます。共有ブランチでは避けてください。
+  - title: リポジトリをクローン
+    code: git clone
+    options:
+      - flag: --depth
+        label: 取得する履歴の数
+        placeholder: 1
+      - label: URL
+        required: true
+        placeholder: https://github.com/user/repo.git
+      - label: フォルダ
+        placeholder: repo
+  - title: リモートの情報を取得
+    description: 作業ツリーを変更せず、リモートの最新情報だけを取得します。
+    code: git fetch
+    options:
+      - flag: --all
+        label: すべてのリモート
+        type: flag
+      - flag: --prune
+        label: 消えたブランチの参照も削除
+        type: flag
+  - title: ブランチをマージ
+    code: git merge
+    options:
+      - flag: --no-ff
+        label: 必ずマージコミットを作る
+        type: flag
+      - label: ブランチ
+        required: true
+        placeholder: feature/my-branch
+  - title: リベース
+    code: git rebase
+    options:
+      - label: 基準のブランチ
+        required: true
+        placeholder: main
+    notes: push 済みのコミットをリベースすると履歴が変わるので注意してください。
+  - title: 特定のコミットを取り込む
+    code: git cherry-pick
+    options:
+      - label: コミット
+        required: true
+        placeholder: abc1234
+  - title: コミットを打ち消す
+    description: 指定したコミットを打ち消す新しいコミットを作ります。履歴は書き換えません。
+    code: git revert
+    options:
+      - label: コミット
+        required: true
+        placeholder: abc1234
+  - title: ステージを取り消す
+    description: ファイルの内容は変えず、ステージだけを取り消します。
+    code: git restore --staged
+    options:
+      - label: パス
+        required: true
+        placeholder: src/app.ts
+  - title: ファイルの変更を破棄
+    code: git restore
+    options:
+      - label: パス
+        required: true
+        placeholder: src/app.ts
+    notes: コミットしていない変更は元に戻せません。
+  - title: 直前のコミットを取り消す
+    description: コミットだけを取り消し、変更はステージしたまま残します。
+    code: git reset --soft HEAD~1
+    notes: 変更も捨てる --hard は元に戻せないことがあるので注意してください。
+  - title: 行ごとの変更者を確認
+    code: git blame
+    options:
+      - flag: -L
+        label: 行の範囲
+        placeholder: 10,20
+      - label: ファイル
+        required: true
+        placeholder: src/app.ts
+  - title: タグを作成
+    code: git tag
+    options:
+      - flag: -a
+        label: タグ名
+        required: true
+        placeholder: v1.0.0
+      - flag: -m
+        label: メッセージ
+        placeholder: リリース 1.0.0
+    notes: タグは git push origin タグ名 で送ります。

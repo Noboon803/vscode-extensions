@@ -1,0 +1,210 @@
+name: docker
+cheats:
+  - title: コンテナの一覧
+    code: docker ps
+    options:
+      - flag: -a
+        label: 停止中も含める
+        type: flag
+  - title: イメージの一覧
+    code: docker images
+  - title: コンテナを起動
+    code: docker run
+    options:
+      - flag: --rm
+        label: 終了時に削除
+        type: flag
+      - flag: -it
+        label: 対話モード
+        type: flag
+      - flag: -d
+        label: バックグラウンド
+        type: flag
+      - flag: --name
+        label: 名前
+        placeholder: web
+      - flag: -p
+        label: ポート（ホスト:コンテナ）
+        placeholder: "127.0.0.1:8080:80"
+      - flag: -v
+        label: ボリューム（ホスト:コンテナ）
+        placeholder: "./data:/data"
+      - flag: -e
+        label: 環境変数
+        placeholder: KEY=value
+      - label: イメージ
+        required: true
+        placeholder: nginx
+      - label: コマンド
+        placeholder: sh
+    notes: -p 8080:80 のように IP を省略すると、外部のネットワークからも接続できる場合があります。
+  - title: コンテナの中でコマンドを実行
+    code: docker exec
+    options:
+      - flag: -it
+        label: 対話モード
+        type: flag
+        default: true
+      - label: コンテナ
+        required: true
+        placeholder: web
+      - label: コマンド
+        required: true
+        default: sh
+  - title: ログを表示
+    code: docker logs
+    options:
+      - flag: -f
+        label: 追記を監視
+        type: flag
+      - flag: --tail
+        label: 末尾の行数
+        default: 100
+      - label: コンテナ
+        required: true
+        placeholder: web
+  - title: イメージをビルド
+    code: docker build
+    options:
+      - flag: -t
+        label: イメージ名
+        placeholder: my-app:latest
+      - flag: -f
+        label: Dockerfile
+        placeholder: Dockerfile.dev
+      - flag: --no-cache
+        label: キャッシュを使わない
+        type: flag
+      - label: コンテキスト
+        required: true
+        default: .
+  - title: イメージを取得
+    code: docker pull
+    options:
+      - label: イメージ
+        required: true
+        placeholder: nginx:latest
+  - title: イメージを送信
+    code: docker push
+    options:
+      - label: イメージ
+        required: true
+        placeholder: user/my-app:latest
+  - title: コンテナを停止
+    code: docker stop
+    options:
+      - label: コンテナ
+        required: true
+        placeholder: web
+  - title: コンテナを開始
+    code: docker start
+    options:
+      - label: コンテナ
+        required: true
+        placeholder: web
+  - title: コンテナを再起動
+    code: docker restart
+    options:
+      - label: コンテナ
+        required: true
+        placeholder: web
+  - title: コンテナを削除
+    code: docker rm
+    options:
+      - flag: -f
+        label: 実行中でも削除
+        type: flag
+      - label: コンテナ
+        required: true
+        placeholder: web
+  - title: イメージを削除
+    code: docker rmi
+    options:
+      - label: イメージ
+        required: true
+        placeholder: nginx:latest
+  - title: ファイルをコピー
+    code: docker cp
+    options:
+      - label: コピー元
+        required: true
+        placeholder: "web:/app/log.txt"
+      - label: コピー先
+        required: true
+        placeholder: ./log.txt
+  - title: 詳細を確認
+    code: docker inspect
+    options:
+      - label: 対象
+        required: true
+        placeholder: web
+  - title: リソースの使用量を確認
+    code: docker stats
+    options:
+      - flag: --no-stream
+        label: 1 回だけ表示
+        type: flag
+  - title: ネットワークの一覧
+    code: docker network ls
+  - title: ボリュームの一覧
+    code: docker volume ls
+  - title: ディスク使用量を確認
+    code: docker system df
+  - title: 未使用のデータを削除
+    code: docker system prune
+    options:
+      - flag: -a
+        label: 未使用のイメージもすべて
+        type: flag
+      - flag: --volumes
+        label: 未使用のボリュームも
+        type: flag
+    notes: 削除したデータは元に戻せません。--volumes を付けるとデータベースなどの内容も失われます。
+  - title: Compose で起動
+    code: docker compose up
+    options:
+      - flag: -d
+        label: バックグラウンド
+        type: flag
+      - flag: --build
+        label: ビルドしてから起動
+        type: flag
+      - label: サービス
+        placeholder: web
+  - title: Compose で停止
+    code: docker compose down
+    options:
+      - flag: -v
+        label: ボリュームも削除
+        type: flag
+    notes: -v を付けると、ボリュームのデータは元に戻せません。
+  - title: Compose のコンテナ一覧
+    code: docker compose ps
+  - title: Compose のログを表示
+    code: docker compose logs
+    options:
+      - flag: -f
+        label: 追記を監視
+        type: flag
+      - flag: --tail
+        label: 末尾の行数
+        default: 100
+      - label: サービス
+        placeholder: web
+  - title: Compose のサービスでコマンドを実行
+    code: docker compose exec
+    options:
+      - label: サービス
+        required: true
+        placeholder: web
+      - label: コマンド
+        required: true
+        default: sh
+  - title: Compose でビルド
+    code: docker compose build
+    options:
+      - flag: --no-cache
+        label: キャッシュを使わない
+        type: flag
+      - label: サービス
+        placeholder: web

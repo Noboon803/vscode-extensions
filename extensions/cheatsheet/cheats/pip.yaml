@@ -1,0 +1,71 @@
+name: pip
+cheats:
+  - title: パッケージをインストール
+    code: pip install
+    options:
+      - flag: -U
+        label: 最新に更新
+        type: flag
+      - label: パッケージ
+        required: true
+        placeholder: requests
+    notes: バージョンは requests==2.32.0 のように指定できます。
+  - title: requirements.txt からインストール
+    code: pip install
+    id: install-requirements
+    options:
+      - flag: -r
+        label: ファイル
+        required: true
+        default: requirements.txt
+  - title: 編集可能モードでインストール
+    description: 開発中のパッケージを、コードの変更がすぐ反映される形でインストールします。
+    code: pip install
+    id: install-editable
+    options:
+      - flag: -e
+        label: パス
+        required: true
+        default: .
+  - title: パッケージを削除
+    code: pip uninstall
+    options:
+      - flag: -y
+        label: 確認しない
+        type: flag
+      - label: パッケージ
+        required: true
+        placeholder: requests
+  - title: インストール済みの一覧
+    code: pip list
+    options:
+      - flag: --outdated
+        label: 更新できるものだけ
+        type: flag
+  - title: パッケージの情報を確認
+    code: pip show
+    options:
+      - label: パッケージ
+        required: true
+        placeholder: requests
+  - title: requirements.txt を作成
+    description: インストール済みのパッケージとバージョンをファイルに書き出します。
+    code: pip freeze > requirements.txt
+  - title: 依存関係の問題を確認
+    code: pip check
+  - title: パッケージをダウンロード
+    description: インストールせずにファイルだけを取得します。
+    code: pip download
+    options:
+      - flag: -d
+        label: 保存先
+        placeholder: ./packages
+      - label: パッケージ
+        required: true
+        placeholder: requests
+  - title: pip を更新
+    code: python3 -m pip install -U pip
+  - title: 設定を確認
+    code: pip config list
+  - title: キャッシュを削除
+    code: pip cache purge
