@@ -152,6 +152,22 @@ select:focus {
   color: var(--vscode-errorForeground);
 }
 
+.option-control {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.option-control .option-input[type='text'] {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.option-picker {
+  width: 100%;
+}
+
 .option-input[type='text'] {
   box-sizing: border-box;
   width: 100%;

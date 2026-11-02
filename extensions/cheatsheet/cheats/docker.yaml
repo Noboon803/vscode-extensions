@@ -24,18 +24,22 @@ cheats:
         label: 名前
         placeholder: web
       - flag: -p
+        multiple: true
         label: ポート（ホスト:コンテナ）
         placeholder: "127.0.0.1:8080:80"
       - flag: -v
+        multiple: true
         label: ボリューム（ホスト:コンテナ）
         placeholder: "./data:/data"
       - flag: -e
+        multiple: true
         label: 環境変数
         placeholder: KEY=value
       - label: イメージ
         required: true
         placeholder: nginx
       - label: コマンド
+        multiple: true
         placeholder: sh
     notes: -p 8080:80 のように IP を省略すると、外部のネットワークからも接続できる場合があります。
   - title: コンテナの中でコマンドを実行
@@ -49,6 +53,7 @@ cheats:
         required: true
         placeholder: web
       - label: コマンド
+        multiple: true
         required: true
         default: sh
   - title: ログを表示
@@ -94,18 +99,21 @@ cheats:
     code: docker stop
     options:
       - label: コンテナ
+        multiple: true
         required: true
         placeholder: web
   - title: コンテナを開始
     code: docker start
     options:
       - label: コンテナ
+        multiple: true
         required: true
         placeholder: web
   - title: コンテナを再起動
     code: docker restart
     options:
       - label: コンテナ
+        multiple: true
         required: true
         placeholder: web
   - title: コンテナを削除
@@ -115,12 +123,14 @@ cheats:
         label: 実行中でも削除
         type: flag
       - label: コンテナ
+        multiple: true
         required: true
         placeholder: web
   - title: イメージを削除
     code: docker rmi
     options:
       - label: イメージ
+        multiple: true
         required: true
         placeholder: nginx:latest
   - title: ファイルをコピー
@@ -136,6 +146,7 @@ cheats:
     code: docker inspect
     options:
       - label: 対象
+        multiple: true
         required: true
         placeholder: web
   - title: リソースの使用量を確認
@@ -170,6 +181,7 @@ cheats:
         label: ビルドしてから起動
         type: flag
       - label: サービス
+        multiple: true
         placeholder: web
   - title: Compose で停止
     code: docker compose down
@@ -190,6 +202,7 @@ cheats:
         label: 末尾の行数
         default: 100
       - label: サービス
+        multiple: true
         placeholder: web
   - title: Compose のサービスでコマンドを実行
     code: docker compose exec
@@ -198,6 +211,7 @@ cheats:
         required: true
         placeholder: web
       - label: コマンド
+        multiple: true
         required: true
         default: sh
   - title: Compose でビルド
@@ -207,4 +221,5 @@ cheats:
         label: キャッシュを使わない
         type: flag
       - label: サービス
+        multiple: true
         placeholder: web

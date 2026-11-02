@@ -13,7 +13,17 @@ import sql from 'highlight.js/lib/languages/sql';
 import typescript from 'highlight.js/lib/languages/typescript';
 import xml from 'highlight.js/lib/languages/xml';
 import yaml from 'highlight.js/lib/languages/yaml';
-import { applyTechniques, composeCommand, isShellLanguage, restoreFields, snapshotFields, supportsTechniques } from '../src/command';
+import {
+  applyTechniques,
+  composeCommand,
+  isShellLanguage,
+  restoreFields,
+  snapshotFields,
+  supportsTechniques,
+  visibleRows,
+  withAddedRow,
+  withoutRow,
+} from '../src/command';
 
 Object.entries({ bash, css, dockerfile, dos, go, javascript, json, powershell, python, rust, sql, typescript, xml, yaml }).forEach(
   ([name, language]) => hljs.registerLanguage(name, language),
@@ -273,41 +283,118 @@ function optionLabel(id, { flag, text, required }) {
   return label;
 }
 
-function renderFields(key, cheat, onChange) {
-  const values = (fieldValues[key] ??= []);
-  const fields = element('div', 'options');
-  cheat.options.forEach((definition, index) => {
-    const id = `option-${index}`;
-    const label = optionLabel(id, {
-      flag: definition.flag,
-      // label を省略すると flag と同じ値になるので、同じ文字を 2 回並べない
-      text: definition.label !== definition.flag ? definition.label : undefined,
-      required: definition.required,
-    });
+/** label を省略すると flag と同じ値になるので、同じ文字を 2 回並べない */
+function optionText(definition) {
+  return definition.label !== definition.flag ? definition.label : undefined;
+}
+
+const OPTION_PICKER_ID = 'option-picker';
+
+/** YAML で multiple を付けたオプションを増やす選択肢。行の位置が変わらないよう、選ぶと先頭の「選択...」に戻る */
+function renderOptionPicker(fields, cheat, onPick) {
+  const addable = cheat.options.flatMap((definition, index) => (definition.multiple ? [{ definition, index }] : []));
+  if (addable.length === 0) {
+    return;
+  }
+  const select = element('select', 'option-picker');
+  select.id = OPTION_PICKER_ID;
+  select.append(
+    option('', '選択...'),
+    ...addable.map(({ definition, index }) =>
+      option(String(index), [definition.flag, optionText(definition)].filter(Boolean).join(' ')),
+    ),
+  );
+  select.addEventListener('change', () => onPick(Number(select.value)));
+  fields.append(optionLabel(OPTION_PICKER_ID, { text: 'オプションを追加' }), select);
+}
+
+function removeRowButton(definition, onClick) {
+  const label = `${[definition.flag, optionText(definition)].filter(Boolean).join(' ')} を外す`;
+  const button = element('button', 'remove-option icon-button', '×');
+  button.type = 'button';
+  button.setAttribute('aria-label', label);
+  addTooltip(button, () => label);
+  button.addEventListener('click', onClick);
+  return button;
+}
+
+function fieldLabel(id, definition) {
+  return optionLabel(id, { flag: definition.flag, text: optionText(definition), required: definition.required });
+}
+
+function renderFlagField(fields, definition, index, values, { onChange }) {
+  const id = `option-${index}-0`;
+  const input = element('input', 'option-input');
+  input.id = id;
+  input.type = 'checkbox';
+  if (definition.required) {
+    input.setAttribute('aria-required', 'true');
+  }
+  input.checked = (values[index] ?? definition.default) === true;
+  input.addEventListener('change', () => {
+    values[index] = input.checked;
+    onChange();
+  });
+  fields.append(fieldLabel(id, definition), input);
+}
+
+function renderTextField(fields, definition, index, values, { onChange, onRemove }) {
+  visibleRows(definition, values[index]).forEach((value, row, rows) => {
+    const id = `option-${index}-${row}`;
     const input = element('input', 'option-input');
     input.id = id;
+    input.type = 'text';
+    input.spellcheck = false;
+    input.value = value;
+    input.placeholder = definition.placeholder ?? '';
     if (definition.required) {
       input.setAttribute('aria-required', 'true');
     }
-    if (definition.type === 'flag') {
-      input.type = 'checkbox';
-      input.checked = (values[index] ?? definition.default) === true;
-      input.addEventListener('change', () => {
-        values[index] = input.checked;
-        onChange();
-      });
-    } else {
-      input.type = 'text';
-      input.spellcheck = false;
-      input.value = String(values[index] ?? definition.default ?? '');
-      input.placeholder = definition.placeholder ?? '';
-      input.addEventListener('input', () => {
-        values[index] = input.value;
-        onChange();
-      });
+    input.addEventListener('input', () => {
+      // お気に入りの設定と配列を共有していることがあるので、書き換えずに作り直す
+      const next = [...visibleRows(definition, values[index])];
+      next[row] = input.value;
+      values[index] = next;
+      onChange();
+    });
+    const control = element('div', 'option-control');
+    control.append(input);
+    // 最後の 1 行は外せない。空にすれば連結されない
+    if (rows.length > 1) {
+      control.append(removeRowButton(definition, () => onRemove(index, row)));
     }
-    fields.append(label, input);
+    fields.append(fieldLabel(id, definition), control);
   });
+}
+
+function renderFields(key, cheat, onChange) {
+  const values = (fieldValues[key] ??= []);
+  const fields = element('div', 'options');
+  const update = (focusId) => {
+    hideTooltip();
+    build();
+    onChange();
+    document.getElementById(focusId)?.focus();
+  };
+  const handlers = {
+    onChange,
+    onRemove(index, row) {
+      values[index] = withoutRow(cheat.options[index], values[index], row);
+      update(OPTION_PICKER_ID);
+    },
+  };
+  function build() {
+    fields.replaceChildren();
+    cheat.options.forEach((definition, index) => {
+      const render = definition.type === 'flag' ? renderFlagField : renderTextField;
+      render(fields, definition, index, values, handlers);
+    });
+    renderOptionPicker(fields, cheat, (index) => {
+      values[index] = withAddedRow(cheat.options[index], values[index]);
+      update(`option-${index}-${values[index].length - 1}`);
+    });
+  }
+  build();
   return fields;
 }
 

@@ -72,6 +72,17 @@ suite('parseCategory のオプション', () => {
     assert.strictEqual(category?.cheats[0].options?.[1].required, false);
   });
 
+  test('multiple を読み、省略時は false にして、不正な指定はエラーにする', () => {
+    const { category } = parseOne('    code: run\n    options:\n      - flag: -e\n        multiple: true\n      - flag: -a\n');
+    assert.strictEqual(category?.cheats[0].options?.[0].multiple, true);
+    assert.strictEqual(category?.cheats[0].options?.[1].multiple, false);
+
+    const notBoolean = parseOne('    code: run\n    options:\n      - flag: -e\n        multiple: "yes"\n');
+    assert.match(notBoolean.errors[0], /multiple は true か false/);
+    const onFlag = parseOne('    code: run\n    options:\n      - flag: -v\n        type: flag\n        multiple: true\n');
+    assert.match(onFlag.errors[0], /multiple は type が text/);
+  });
+
   test('placeholder は数値でも受け付ける', () => {
     const { category, errors } = parseOne('    code: run\n    options:\n      - flag: -a\n        placeholder: -7\n');
     assert.deepStrictEqual(errors, []);

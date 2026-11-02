@@ -21,6 +21,7 @@ cheats:
         required: true
         placeholder: main.py
       - label: 引数
+        multiple: true
         placeholder: input.txt
   - title: モジュールを実行
     code: python3 -m
@@ -29,6 +30,7 @@ cheats:
         required: true
         placeholder: my_package
       - label: 引数
+        multiple: true
         placeholder: --help
   - title: 1 行のコードを実行
     code: python3 -c
@@ -85,6 +87,7 @@ cheats:
     code: python3 -m pip
     options:
       - label: サブコマンド
+        multiple: true
         required: true
         default: list
   - title: パッケージの検索パスを確認
@@ -94,5 +97,6 @@ cheats:
     code: python3 -m py_compile
     options:
       - label: ファイル
+        multiple: true
         required: true
         placeholder: main.py

@@ -51,6 +51,12 @@ function parseOption(value: unknown): CheatOption | string {
   if (value.required !== undefined && value.required !== null && typeof value.required !== 'boolean') {
     return 'required は true か false です';
   }
+  if (value.multiple !== undefined && value.multiple !== null && typeof value.multiple !== 'boolean') {
+    return 'multiple は true か false です';
+  }
+  if (value.multiple === true && type === 'flag') {
+    return 'multiple は type が text のときだけ使えます';
+  }
   const fallback = value.default;
   if (fallback !== undefined && fallback !== null && !['string', 'number', 'boolean'].includes(typeof fallback)) {
     return 'default の形式が正しくありません';
@@ -63,6 +69,7 @@ function parseOption(value: unknown): CheatOption | string {
     placeholder: placeholder === undefined || placeholder === null || placeholder === '' ? undefined : String(placeholder),
     default: type === 'flag' ? fallback === true : fallback === undefined || fallback === null ? undefined : String(fallback),
     separator: (value.separator as string | null | undefined) ?? undefined,
+    multiple: value.multiple === true,
   };
 }
 

@@ -7,6 +7,7 @@ cheats:
         label: 最新に更新
         type: flag
       - label: パッケージ
+        multiple: true
         required: true
         placeholder: requests
     notes: バージョンは requests==2.32.0 のように指定できます。
@@ -15,6 +16,7 @@ cheats:
     id: install-requirements
     options:
       - flag: -r
+        multiple: true
         label: ファイル
         required: true
         default: requirements.txt
@@ -24,6 +26,7 @@ cheats:
     id: install-editable
     options:
       - flag: -e
+        multiple: true
         label: パス
         required: true
         default: .
@@ -34,6 +37,7 @@ cheats:
         label: 確認しない
         type: flag
       - label: パッケージ
+        multiple: true
         required: true
         placeholder: requests
   - title: インストール済みの一覧
@@ -46,6 +50,7 @@ cheats:
     code: pip show
     options:
       - label: パッケージ
+        multiple: true
         required: true
         placeholder: requests
   - title: requirements.txt を作成
@@ -61,6 +66,7 @@ cheats:
         label: 保存先
         placeholder: ./packages
       - label: パッケージ
+        multiple: true
         required: true
         placeholder: requests
   - title: pip を更新

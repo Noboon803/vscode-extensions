@@ -12,6 +12,8 @@ export interface CheatOption {
   default?: string | boolean;
   /** flag と値の間に置く文字。既定は半角スペース */
   separator?: string;
+  /** 「オプションを追加」から同じオプションを増やせるか。type が text のときだけ使える */
+  multiple?: boolean;
 }
 
 /** 1 件のチート */

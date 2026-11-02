@@ -17,6 +17,7 @@ cheats:
     code: git log --oneline
     options:
       - flag: --author
+        multiple: true
         label: 作成者
         placeholder: 名前
         separator: "="
@@ -25,6 +26,7 @@ cheats:
         placeholder: "2026-01-01"
         separator: "="
       - flag: --grep
+        multiple: true
         label: メッセージ
         placeholder: fix
         separator: "="
@@ -53,6 +55,7 @@ cheats:
         label: 変更量だけ
         type: flag
       - label: パス
+        multiple: true
         placeholder: src/
   - title: 変更をステージ
     code: git add
@@ -61,6 +64,7 @@ cheats:
         label: 変更単位で選ぶ
         type: flag
       - label: パス
+        multiple: true
         required: true
         default: .
   - title: コミット
@@ -70,6 +74,7 @@ cheats:
         label: 追跡中の変更をすべて含める
         type: flag
       - flag: -m
+        multiple: true
         label: メッセージ
         required: true
         placeholder: fix typo
@@ -93,6 +98,7 @@ cheats:
     code: git branch -d
     options:
       - label: ブランチ
+        multiple: true
         required: true
         placeholder: feature/my-branch
     notes: 未統合のブランチも削除するには -D を使います。未統合のコミットを失う可能性があります。
@@ -161,6 +167,7 @@ cheats:
     code: git cherry-pick
     options:
       - label: コミット
+        multiple: true
         required: true
         placeholder: abc1234
   - title: コミットを打ち消す
@@ -168,6 +175,7 @@ cheats:
     code: git revert
     options:
       - label: コミット
+        multiple: true
         required: true
         placeholder: abc1234
   - title: ステージを取り消す
@@ -175,12 +183,14 @@ cheats:
     code: git restore --staged
     options:
       - label: パス
+        multiple: true
         required: true
         placeholder: src/app.ts
   - title: ファイルの変更を破棄
     code: git restore
     options:
       - label: パス
+        multiple: true
         required: true
         placeholder: src/app.ts
     notes: コミットしていない変更は元に戻せません。
@@ -205,6 +215,7 @@ cheats:
         required: true
         placeholder: v1.0.0
       - flag: -m
+        multiple: true
         label: メッセージ
         placeholder: リリース 1.0.0
     notes: タグは git push origin タグ名 で送ります。

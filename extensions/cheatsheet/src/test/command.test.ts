@@ -1,6 +1,18 @@
 import * as assert from 'node:assert';
 import type { CheatOption } from '../cheatsheet';
-import { applyTechniques, composeCommand, isShellLanguage, quoteShellValue, restoreFields, snapshotFields, supportsTechniques } from '../command';
+import {
+  applyTechniques,
+  composeCommand,
+  isShellLanguage,
+  optionRows,
+  quoteShellValue,
+  restoreFields,
+  snapshotFields,
+  supportsTechniques,
+  visibleRows,
+  withAddedRow,
+  withoutRow,
+} from '../command';
 
 const text = (option: Partial<CheatOption> = {}): CheatOption => ({ label: 'l', type: 'text', ...option });
 
@@ -56,6 +68,51 @@ suite('composeCommand', () => {
 
   test('複数行のコードは最終行の末尾に連結する', () => {
     assert.strictEqual(composeCommand('a\nb\n', [text({ flag: '-x' })], ['1']), 'a\nb -x 1');
+  });
+
+  test('同じオプションの値をすべて連結し、空の行は省略する', () => {
+    const options = [text({ flag: '-e', multiple: true }), text({ flag: '-p', separator: '=', multiple: true }), text()];
+    assert.strictEqual(
+      composeCommand('docker run', options, [['A=1', ' ', 'B=a b'], ['80', '443'], ['nginx', 'sh']]),
+      "docker run -e A=1 -e 'B=a b' -p=80 -p=443 nginx sh",
+    );
+  });
+
+  test('空の配列は既定値を使わない', () => {
+    assert.strictEqual(composeCommand('cmd', [text({ flag: '-n', default: '20' })], [[]]), 'cmd');
+  });
+});
+
+suite('オプションの行の追加と削除', () => {
+  test('未入力でも 1 行は見せ、既定値があれば入れる', () => {
+    assert.deepStrictEqual(visibleRows(text(), undefined), ['']);
+    assert.deepStrictEqual(visibleRows(text({ default: '20' }), undefined), ['20']);
+    assert.deepStrictEqual(visibleRows(text({ default: '20' }), ''), ['']);
+  });
+
+  test('見えている行の下に 1 行足す', () => {
+    assert.deepStrictEqual(withAddedRow(text(), undefined), ['', '']);
+    assert.deepStrictEqual(withAddedRow(text({ default: '20' }), undefined), ['20', '']);
+    assert.deepStrictEqual(withAddedRow(text(), ['a']), ['a', '']);
+  });
+
+  test('指定した行だけ外し、元の配列は変更しない', () => {
+    const rows = ['a', 'b', 'c'];
+    assert.deepStrictEqual(withoutRow(text(), rows, 1), ['a', 'c']);
+    assert.deepStrictEqual(rows, ['a', 'b', 'c']);
+  });
+
+  test('以前の保存形式の文字列を行として読む', () => {
+    assert.deepStrictEqual(optionRows(text(), 'a'), ['a']);
+    assert.deepStrictEqual(optionRows(text({ default: '20' }), ''), []);
+    assert.deepStrictEqual(optionRows(text({ default: '20' }), undefined), ['20']);
+  });
+
+  test('複数の値を保存して復元できる', () => {
+    const options = [text({ flag: '-e', multiple: true }), text({ flag: '--name' })];
+    const saved = snapshotFields(options, [['A=1', 'B=2'], []]);
+    assert.deepStrictEqual(saved, { '-e': ['A=1', 'B=2'], '--name': [] });
+    assert.strictEqual(composeCommand('cmd', options, restoreFields(options, saved)), 'cmd -e A=1 -e B=2');
   });
 });
 

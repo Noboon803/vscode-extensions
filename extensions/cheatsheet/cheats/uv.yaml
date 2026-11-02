@@ -18,6 +18,7 @@ cheats:
         label: 開発用
         type: flag
       - label: パッケージ
+        multiple: true
         required: true
         placeholder: requests
   - title: パッケージを削除
@@ -27,6 +28,7 @@ cheats:
         label: 開発用
         type: flag
       - label: パッケージ
+        multiple: true
         required: true
         placeholder: requests
   - title: 環境を同期
@@ -47,9 +49,11 @@ cheats:
     code: uv run
     options:
       - flag: --with
+        multiple: true
         label: 一時的に追加するパッケージ
         placeholder: rich
       - label: コマンド
+        multiple: true
         required: true
         placeholder: main.py
   - title: ロックファイルを更新
@@ -59,6 +63,7 @@ cheats:
         label: すべて最新へ更新
         type: flag
       - flag: --upgrade-package
+        multiple: true
         label: 更新するパッケージ
         placeholder: requests
   - title: 依存関係のツリーを表示
@@ -84,6 +89,7 @@ cheats:
     code: uv python install
     options:
       - label: バージョン
+        multiple: true
         placeholder: "3.12"
   - title: Python の一覧
     code: uv python list
@@ -98,9 +104,11 @@ cheats:
     code: uv pip install
     options:
       - flag: -r
+        multiple: true
         label: 要件ファイル
         placeholder: requirements.txt
       - label: パッケージ
+        multiple: true
         placeholder: requests
   - title: pip 互換で一覧を表示
     code: uv pip list
@@ -112,6 +120,7 @@ cheats:
         required: true
         placeholder: ruff
       - label: 引数
+        multiple: true
         placeholder: check
   - title: ツールをインストール
     code: uv tool install

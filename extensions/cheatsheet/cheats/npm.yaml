@@ -10,6 +10,7 @@ cheats:
         label: グローバル
         type: flag
       - label: パッケージ
+        multiple: true
         placeholder: lodash
     notes: パッケージを省略すると package.json の内容をインストールします。
   - title: ロックファイルどおりにインストール
@@ -20,6 +21,7 @@ cheats:
     code: npm uninstall
     options:
       - label: パッケージ
+        multiple: true
         required: true
         placeholder: lodash
   - title: スクリプトを実行
@@ -28,6 +30,7 @@ cheats:
       - label: スクリプト
         placeholder: build
       - flag: -w
+        multiple: true
         label: ワークスペース
         placeholder: my-package
     notes: スクリプトを省略すると一覧を表示します。
@@ -51,6 +54,7 @@ cheats:
     code: npm update
     options:
       - label: パッケージ
+        multiple: true
         placeholder: lodash
   - title: パッケージの情報を確認
     code: npm view
@@ -67,11 +71,13 @@ cheats:
         required: true
         placeholder: cowsay
       - label: 引数
+        multiple: true
         placeholder: hello
   - title: 脆弱性を確認
     code: npm audit
     options:
       - flag: --omit
+        multiple: true
         label: 除外する種類
         placeholder: dev
         separator: "="

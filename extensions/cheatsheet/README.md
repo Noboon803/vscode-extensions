@@ -19,10 +19,14 @@ cheats:
   - title: コンテナを起動
     code: docker run
     language: bash      # 構文ハイライトの言語。省略すると bash。シェル以外は送信ボタンを出さない
-    options:            # 入力欄。入力した値を定義順に code の末尾へ連結する
+    options:            # 入力した値を定義順に code の末尾へ連結する
       - flag: --name    # 省略すると値だけを連結する（位置引数）
         label: 名前     # flag の横に表示する簡潔な説明。省略可
         placeholder: web
+      - flag: -e
+        label: 環境変数
+        placeholder: KEY=value
+        multiple: true  # 「オプションを追加」から増やせる（-e A=1 -e B=2）
       - flag: --rm
         type: flag      # 値を取らないオプション。チェックボックスになる
       - label: イメージ
@@ -30,6 +34,8 @@ cheats:
         default: nginx
       # separator: "="  と書くと --name=web の形で連結する
 ```
+
+定義したオプションは定義順にすべて表示します。`multiple` を付けたものは、一番下の「オプションを追加」に選択肢として出ます。選ぶと元の行のすぐ下に入力欄が増え、× で外せます。位置引数にも付けられます（`npm install a b`）。追加した順に関係なく、連結するのは定義順です。
 
 入力欄の値は、記号を含むと POSIX シェルの形式（シングルクォート）でクォートします。PowerShell などでは書き換えが必要な場合があります。
 

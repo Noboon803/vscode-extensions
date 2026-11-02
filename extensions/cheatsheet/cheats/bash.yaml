@@ -36,11 +36,13 @@ cheats:
         label: サイズを読みやすく
         type: flag
       - label: パス
+        multiple: true
         placeholder: ./src
   - title: フォルダを作成
     code: mkdir -p
     options:
       - label: パス
+        multiple: true
         required: true
         placeholder: path/to/dir
     notes: -p を付けると途中のフォルダもまとめて作ります。
@@ -51,6 +53,7 @@ cheats:
         label: フォルダごと
         type: flag
       - label: コピー元
+        multiple: true
         required: true
         placeholder: src
       - label: コピー先
@@ -60,6 +63,7 @@ cheats:
     code: mv
     options:
       - label: 移動元
+        multiple: true
         required: true
         placeholder: old.txt
       - label: 移動先
@@ -76,6 +80,7 @@ cheats:
         type: flag
         default: true
       - label: パス
+        multiple: true
         required: true
         placeholder: old.txt
     notes: 削除したファイルは元に戻せません。
@@ -86,6 +91,7 @@ cheats:
         label: 行数
         default: 20
       - label: ファイル
+        multiple: true
         required: true
         placeholder: app.log
   - title: ファイルの末尾を表示
@@ -98,6 +104,7 @@ cheats:
         label: 追記を監視
         type: flag
       - label: ファイル
+        multiple: true
         required: true
         placeholder: app.log
     notes: -f の監視は Ctrl+C で止めます。
@@ -105,6 +112,7 @@ cheats:
     code: wc -l
     options:
       - label: ファイル
+        multiple: true
         required: true
         placeholder: app.log
   - title: 重複を除いて件数を集計
@@ -127,6 +135,7 @@ cheats:
         required: true
         placeholder: +x
       - label: パス
+        multiple: true
         required: true
         placeholder: script.sh
   - title: プロセスを探す
@@ -135,6 +144,7 @@ cheats:
     code: kill
     options:
       - label: プロセス ID
+        multiple: true
         required: true
         placeholder: 12345
     notes: 終了しないときは kill -9 で強制終了できますが、後始末は行われません。
@@ -144,6 +154,7 @@ cheats:
     code: du -sh
     options:
       - label: パス
+        multiple: true
         default: .
   - title: tar で圧縮
     code: tar -czf
@@ -152,6 +163,7 @@ cheats:
         required: true
         placeholder: backup.tar.gz
       - label: 対象
+        multiple: true
         required: true
         placeholder: src
   - title: tar を展開
@@ -185,6 +197,7 @@ cheats:
         label: ポート
         placeholder: 22
       - flag: -i
+        multiple: true
         label: 秘密鍵
         placeholder: ~/.ssh/id_ed25519
       - label: 接続先

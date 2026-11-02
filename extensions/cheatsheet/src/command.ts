@@ -12,36 +12,69 @@ export function quoteShellValue(value: string): string {
   return /^[\w@%+=:,./~-]+$/.test(value) ? value : `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
-/** 入力値をオプションの定義順にコードの末尾へ連結する。空の値は省略する */
-export function composeCommand(code: string, options: CheatOption[], values: Array<string | boolean | undefined>): string {
+/**
+ * オプション 1 つの入力値。未操作は undefined で、既定値を使う。
+ * text は行ごとの値の配列。単独の文字列は以前の保存形式で、空文字は省略を表す。
+ * flag はチェックの状態。
+ */
+export type FieldValue = string | boolean | string[] | undefined;
+
+/** text のオプションの入力行 */
+export function optionRows(option: CheatOption, value: FieldValue): string[] {
+  const current = value ?? option.default;
+  if (Array.isArray(current)) {
+    return current;
+  }
+  return current === undefined || current === '' ? [] : [String(current)];
+}
+
+/** 画面に並べる行。未入力でも 1 行は見せる */
+export function visibleRows(option: CheatOption, value: FieldValue): string[] {
+  const rows = optionRows(option, value);
+  return rows.length === 0 ? [''] : rows;
+}
+
+export function withAddedRow(option: CheatOption, value: FieldValue): string[] {
+  return [...visibleRows(option, value), ''];
+}
+
+export function withoutRow(option: CheatOption, value: FieldValue, row: number): string[] {
+  return visibleRows(option, value).filter((_, index) => index !== row);
+}
+
+/**
+ * 入力値をオプションの定義順にコードの末尾へ連結する。空の値は省略する。
+ * 追加した順にしないのは、`docker run` のイメージのように引数の位置で意味が変わるため。
+ */
+export function composeCommand(code: string, options: CheatOption[], values: FieldValue[]): string {
   const parts: string[] = [];
   options.forEach((option, index) => {
-    const value = values[index] ?? option.default;
     if (option.type === 'flag') {
-      if (value === true && option.flag) {
+      if ((values[index] ?? option.default) === true && option.flag) {
         parts.push(option.flag);
       }
       return;
     }
-    const text = String(value ?? '').trim();
-    if (text === '') {
-      return;
+    for (const row of optionRows(option, values[index])) {
+      const text = row.trim();
+      if (text !== '') {
+        const quoted = quoteShellValue(text);
+        parts.push(option.flag ? `${option.flag}${option.separator ?? ' '}${quoted}` : quoted);
+      }
     }
-    const quoted = quoteShellValue(text);
-    parts.push(option.flag ? `${option.flag}${option.separator ?? ' '}${quoted}` : quoted);
   });
   return [code.trimEnd(), ...parts].join(' ');
 }
 
 /** 保存する入力値。定義の順番が変わっても別のオプションへ入らないよう、名前で引けるようにする */
 export interface CheatSettings {
-  fields: Record<string, string | boolean>;
+  fields: Record<string, string | boolean | string[]>;
   techniques: TechniqueValues;
 }
 
 const fieldName = (option: CheatOption): string => option.flag ?? option.label;
 
-export function snapshotFields(options: CheatOption[], values: Array<string | boolean | undefined>): CheatSettings['fields'] {
+export function snapshotFields(options: CheatOption[], values: FieldValue[]): CheatSettings['fields'] {
   const fields: CheatSettings['fields'] = {};
   options.forEach((option, index) => {
     const value = values[index];
@@ -53,7 +86,7 @@ export function snapshotFields(options: CheatOption[], values: Array<string | bo
 }
 
 /** 保存になかったオプションは undefined にして、既定値を使わせる */
-export function restoreFields(options: CheatOption[], fields: CheatSettings['fields']): Array<string | boolean | undefined> {
+export function restoreFields(options: CheatOption[], fields: CheatSettings['fields']): FieldValue[] {
   return options.map((option) => fields[fieldName(option)]);
 }
 
