@@ -1,0 +1,2 @@
+const cp = require('child' + '_process');
+cp.exec('echo hello');

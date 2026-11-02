@@ -1,0 +1,5 @@
+// require('child_process'); eval('1'); fetch('https://comment.example.test/');
+/* new Function('return 1'); path: ~/.ssh/id_rsa */
+const message = 'この拡張機能は child_process を使いません。eval も fetch も呼びません';
+const obj = { eval: 1, fetch: 2 };
+console.log(message, obj.eval, obj.fetch, 'https://www.w3.org/2000/svg');

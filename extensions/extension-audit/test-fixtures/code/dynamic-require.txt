@@ -1,0 +1,4 @@
+const name = getName();
+const mod = require(name);
+import(name);
+console.log(mod);
