@@ -14,3 +14,4 @@
 - お気に入りにオプションと組み合わせの設定を含めて登録
 - 同梱のチートシートに npm、pip、python、uv、docker を追加し、git と bash を拡充
 - 「オプションを追加」で同じオプションや引数を複数指定（YAML の `multiple`）
+- 同梱のチートシートに nvm、node、code、pytest、ruff を追加

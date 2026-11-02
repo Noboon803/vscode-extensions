@@ -1,0 +1,109 @@
+name: ruff
+cheats:
+  - title: コードを検査
+    code: ruff check
+    options:
+      - flag: --fix
+        label: 自動で修正
+        type: flag
+      - flag: --select
+        label: 使うルール
+        placeholder: E,F
+        multiple: true
+      - flag: --ignore
+        label: 無視するルール
+        placeholder: E501
+        multiple: true
+      - flag: --exclude
+        label: 除外するパス
+        placeholder: migrations
+        multiple: true
+      - flag: --output-format
+        label: 出力形式
+        placeholder: github
+      - label: パス
+        multiple: true
+        placeholder: src/
+  - title: 修正内容を確認
+    description: ファイルは変更せず、修正の差分を表示します。
+    code: ruff check --diff
+    options:
+      - label: パス
+        multiple: true
+        placeholder: src/
+  - title: 動作が変わる可能性のある修正も適用
+    code: ruff check --fix --unsafe-fixes
+    options:
+      - label: パス
+        multiple: true
+        placeholder: src/
+    notes: コードの意味が変わることがあるので、適用後に差分を確認します。
+  - title: import を整理
+    code: ruff check --select I --fix
+    options:
+      - label: パス
+        multiple: true
+        placeholder: src/
+  - title: ルールごとの件数を確認
+    code: ruff check --statistics
+    options:
+      - label: パス
+        multiple: true
+        placeholder: src/
+  - title: 変更を監視して検査
+    code: ruff check --watch
+    options:
+      - label: パス
+        multiple: true
+        placeholder: src/
+  - title: 既存の違反に noqa を追加
+    description: 今の違反を無視するコメントを、該当の行に追加します。
+    code: ruff check --add-noqa
+    options:
+      - label: パス
+        multiple: true
+        placeholder: src/
+    notes: ファイルを書き換えます。
+  - title: コードを整形
+    code: ruff format
+    options:
+      - flag: --line-length
+        label: 1 行の文字数
+        placeholder: 100
+      - flag: --exclude
+        label: 除外するパス
+        placeholder: migrations
+        multiple: true
+      - label: パス
+        multiple: true
+        placeholder: src/
+  - title: 整形が必要か確認
+    description: ファイルは変更せず、必要なら終了コード 1 で終わります。CI で使えます。
+    code: ruff format --check
+    options:
+      - label: パス
+        multiple: true
+        placeholder: src/
+  - title: 整形の差分を確認
+    code: ruff format --diff
+    options:
+      - label: パス
+        multiple: true
+        placeholder: src/
+  - title: ルールの説明を確認
+    code: ruff rule
+    options:
+      - label: ルール
+        required: true
+        placeholder: F401
+  - title: 使えるルール群の一覧
+    code: ruff linter
+  - title: 設定項目の説明を確認
+    code: ruff config
+    options:
+      - label: 設定項目
+        placeholder: lint.select
+  - title: キャッシュを削除
+    code: ruff clean
+  - title: バージョンを確認
+    code: ruff version

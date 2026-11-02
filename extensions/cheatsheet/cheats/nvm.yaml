@@ -1,0 +1,89 @@
+name: nvm
+cheats:
+  - title: 使用中のバージョンを確認
+    code: nvm current
+  - title: インストール済みのバージョンの一覧
+    code: nvm ls
+  - title: インストールできるバージョンの一覧
+    code: nvm ls-remote
+    options:
+      - flag: --lts
+        label: LTS だけ
+        type: flag
+      - label: バージョン
+        placeholder: "22"
+  - title: Node をインストール
+    code: nvm install
+    options:
+      - flag: --lts
+        label: 最新の LTS
+        type: flag
+      - flag: --default
+        label: 既定のバージョンにする
+        type: flag
+      - flag: --latest-npm
+        label: npm も最新にする
+        type: flag
+      - flag: --save
+        label: .nvmrc に書き込む
+        type: flag
+      - flag: --reinstall-packages-from
+        label: グローバルパッケージの引き継ぎ元
+        placeholder: "20"
+        separator: "="
+      - label: バージョン
+        placeholder: "22"
+    notes: バージョンを省略すると .nvmrc を使います。オプションはバージョンより前に置きます。
+  - title: バージョンを切り替え
+    code: nvm use
+    options:
+      - flag: --save
+        label: .nvmrc に書き込む
+        type: flag
+      - label: バージョン
+        placeholder: "22"
+    notes: 今のターミナルだけに効きます。バージョンを省略すると .nvmrc を使います。
+  - title: 既定のバージョンを設定
+    description: 新しいターミナルで使うバージョンを設定します。
+    code: nvm alias default
+    options:
+      - label: バージョン
+        required: true
+        placeholder: "22"
+  - title: エイリアスの一覧
+    code: nvm alias
+  - title: nvm 以外で入れた Node に切り替え
+    code: nvm use system
+  - title: 別のバージョンでコマンドを実行
+    description: 今のターミナルのバージョンを変えずに実行します。
+    code: nvm exec
+    options:
+      - label: バージョン
+        required: true
+        placeholder: "20"
+      - label: コマンド
+        required: true
+        multiple: true
+        placeholder: node
+  - title: グローバルパッケージを引き継ぐ
+    description: 指定したバージョンのグローバルパッケージを、今のバージョンへ入れ直します。
+    code: nvm reinstall-packages
+    options:
+      - label: 引き継ぎ元のバージョン
+        required: true
+        placeholder: "20"
+  - title: npm を最新にする
+    description: 今の Node で動く最新の npm を入れます。
+    code: nvm install-latest-npm
+  - title: Node の場所を確認
+    code: nvm which
+    options:
+      - label: バージョン
+        default: current
+  - title: バージョンを削除
+    code: nvm uninstall
+    options:
+      - label: バージョン
+        required: true
+        placeholder: "20"
+    notes: そのバージョンに入れたグローバルパッケージも消えます。

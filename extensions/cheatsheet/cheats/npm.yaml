@@ -84,13 +84,25 @@ cheats:
   - title: 脆弱性を修正
     code: npm audit fix
     notes: --force を付けると破壊的な更新も適用します。
+  - title: バージョンを確認
+    description: 今のパッケージと npm、Node などのバージョンを表示します。
+    code: npm version
+    notes: npm 本体のバージョンだけなら npm -v を使います。
   - title: バージョンを上げる
+    description: 作業中のパッケージのバージョンを上げます。
     code: npm version
     options:
       - label: 種類
         required: true
-        placeholder: patch
-    notes: Git リポジトリでは、コミットとタグも作ります。
+        default: patch
+    notes: patch は 1.2.3 → 1.2.4、minor は 1.3.0、major は 2.0.0 になります。1.5.0 のように直接指定もできます。Git リポジトリでは、コミットとタグも作ります。種類を空にすると、バージョンの表示になります。
+  - title: npm 自身を更新
+    code: npm install -g
+    options:
+      - label: バージョン
+        required: true
+        default: npm@latest
+    notes: Node が対応していないと EBADENGINE のエラーになります。Node を更新するか、npm@11 のように対応するバージョンを指定します。
   - title: 公開内容を確認
     description: 実際には公開せず、含まれるファイルを確認します。
     code: npm publish --dry-run

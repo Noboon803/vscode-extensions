@@ -175,7 +175,7 @@ suite('ファイルからの読み込み', () => {
     assert.ok(extension);
     const { categories, errors } = await loadContent([vscode.Uri.joinPath(extension.extensionUri, 'cheats')]);
     assert.deepStrictEqual(errors, []);
-    assert.deepStrictEqual(categories.map((c) => c.id), ['bash', 'docker', 'git', 'npm', 'pip', 'python', 'uv']);
+    assert.deepStrictEqual(categories.map((c) => c.id), ['bash', 'code', 'docker', 'git', 'node', 'npm', 'nvm', 'pip', 'pytest', 'python', 'ruff', 'uv']);
   });
 
   test('YAML 以外は無視し、壊れたファイルがあっても他を読み込む', async () => {

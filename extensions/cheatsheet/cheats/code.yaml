@@ -1,0 +1,117 @@
+name: code
+cheats:
+  - title: ファイルやフォルダを開く
+    code: code
+    options:
+      - flag: -n
+        label: 新しいウィンドウ
+        type: flag
+      - flag: -r
+        label: 今のウィンドウ
+        type: flag
+      - label: パス
+        default: .
+        multiple: true
+  - title: 指定した行を開く
+    code: code -g
+    options:
+      - label: ファイル:行
+        required: true
+        placeholder: src/app.ts:10
+  - title: 2 つのファイルを比較
+    code: code -d
+    options:
+      - label: 比較元
+        required: true
+        placeholder: old.txt
+      - label: 比較先
+        required: true
+        placeholder: new.txt
+  - title: 3 方向マージ
+    code: code -m
+    options:
+      - label: 変更 1
+        required: true
+        placeholder: ours.txt
+      - label: 変更 2
+        required: true
+        placeholder: theirs.txt
+      - label: 共通の元
+        required: true
+        placeholder: base.txt
+      - label: 保存先
+        required: true
+        placeholder: result.txt
+  - title: 今のウィンドウにフォルダを追加
+    code: code -a
+    options:
+      - label: フォルダ
+        required: true
+        multiple: true
+        placeholder: ../other
+  - title: 閉じるまで待つ
+    description: ファイルを閉じるまでコマンドを終了しません。
+    code: code -w
+    options:
+      - label: ファイル
+        required: true
+        multiple: true
+        placeholder: notes.txt
+    notes: Git のエディタにするには git config --global core.editor "code --wait" を実行します。
+  - title: コマンドの出力を開く
+    code: git diff | code -
+  - title: プロファイルを指定して開く
+    code: code
+    id: open-with-profile
+    options:
+      - flag: --profile
+        label: プロファイル名
+        required: true
+        placeholder: Work
+      - label: パス
+        default: .
+    notes: 指定した名前のプロファイルがなければ、空のプロファイルを作ります。
+  - title: 拡張機能なしで開く
+    description: 問題の原因が拡張機能か切り分けるときに使います。
+    code: code --disable-extensions
+    options:
+      - label: パス
+        default: .
+  - title: 拡張機能の一覧
+    code: code --list-extensions
+    options:
+      - flag: --show-versions
+        label: バージョンも表示
+        type: flag
+  - title: 拡張機能をインストール
+    code: code
+    id: install-extension
+    options:
+      - flag: --install-extension
+        label: ID または VSIX のパス
+        required: true
+        multiple: true
+        placeholder: publisher.name
+      - flag: --force
+        label: インストール済みでも更新
+        type: flag
+      - flag: --pre-release
+        label: プレリリース版
+        type: flag
+    notes: 同じバージョンの VSIX を入れ直すときは --force が必要です。
+  - title: 拡張機能をアンインストール
+    code: code
+    id: uninstall-extension
+    options:
+      - flag: --uninstall-extension
+        label: ID
+        required: true
+        multiple: true
+        placeholder: publisher.name
+  - title: 拡張機能を更新
+    code: code --update-extensions
+  - title: バージョンを確認
+    code: code --version
+  - title: 動作状況を確認
+    description: プロセスや使用メモリなどの診断情報を表示します。
+    code: code --status

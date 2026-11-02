@@ -1,0 +1,72 @@
+name: node
+cheats:
+  - title: バージョンを確認
+    code: node --version
+  - title: スクリプトを実行
+    code: node
+    options:
+      - flag: --watch
+        label: 変更したら再実行
+        type: flag
+      - flag: --env-file
+        label: 環境変数のファイル
+        placeholder: .env
+        separator: "="
+        multiple: true
+      - label: スクリプト
+        required: true
+        placeholder: app.js
+      - label: 引数
+        multiple: true
+        placeholder: --port=3000
+  - title: 対話モード（REPL）を起動
+    description: 終了するには .exit を入力します。
+    code: node
+  - title: 式を評価して結果を表示
+    code: node -p
+    options:
+      - label: 式
+        required: true
+        placeholder: process.versions
+  - title: コードを実行
+    code: node -e
+    options:
+      - label: コード
+        required: true
+        placeholder: console.log(process.platform)
+  - title: package.json のスクリプトを実行
+    description: npm run より速く起動しますが、pre や post のスクリプトは実行しません。
+    code: node --run
+    options:
+      - label: スクリプト
+        required: true
+        placeholder: test
+  - title: 構文を確認
+    description: 実行せずに構文だけを確認します。
+    code: node --check
+    options:
+      - label: ファイル
+        required: true
+        placeholder: app.js
+  - title: テストを実行
+    description: 組み込みのテストランナーで実行します。
+    code: node --test
+    options:
+      - flag: --watch
+        label: 変更したら再実行
+        type: flag
+      - flag: --test-name-pattern
+        label: テスト名の絞り込み
+        placeholder: login
+        separator: "="
+        multiple: true
+      - label: パス
+        multiple: true
+        placeholder: test/
+  - title: デバッガを待って実行
+    description: 先頭で止まり、Chrome DevTools や VS Code からの接続を待ちます。
+    code: node --inspect-brk
+    options:
+      - label: スクリプト
+        required: true
+        placeholder: app.js

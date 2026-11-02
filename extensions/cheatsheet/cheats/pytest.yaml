@@ -1,0 +1,125 @@
+name: pytest
+cheats:
+  - title: テストを実行
+    code: pytest
+    options:
+      - flag: -v
+        label: 詳しく表示
+        type: flag
+      - flag: -q
+        label: 簡潔に表示
+        type: flag
+      - flag: -x
+        label: 最初の失敗で止める
+        type: flag
+      - flag: -s
+        label: print の出力を表示
+        type: flag
+      - flag: --ignore
+        label: 除外するパス
+        placeholder: tests/slow
+        multiple: true
+      - label: パス
+        multiple: true
+        placeholder: tests/
+  - title: 特定のテストだけ実行
+    code: pytest
+    id: run-specific
+    options:
+      - label: テスト
+        required: true
+        multiple: true
+        placeholder: "tests/test_a.py::test_login"
+  - title: 名前で絞り込んで実行
+    code: pytest -k
+    options:
+      - label: 式
+        required: true
+        placeholder: login and not slow
+    notes: 大文字と小文字を区別せず、名前の一部に一致します。
+  - title: マーカーで絞り込んで実行
+    code: pytest -m
+    options:
+      - label: 式
+        required: true
+        placeholder: not slow
+  - title: 特定のテストを除外して実行
+    code: pytest
+    id: run-deselect
+    options:
+      - flag: --deselect
+        label: 除外するテスト
+        required: true
+        multiple: true
+        placeholder: "tests/test_a.py::test_login"
+  - title: 前回失敗したテストだけ実行
+    code: pytest --lf
+  - title: 前回失敗したテストから先に実行
+    code: pytest --ff
+  - title: 失敗で止めて、次回はそこから再開
+    code: pytest --sw
+  - title: 失敗したらデバッガを起動
+    code: pytest --pdb
+    options:
+      - flag: -x
+        label: 最初の失敗で止める
+        type: flag
+  - title: テストの一覧を確認
+    description: テストを実行せずに、見つかったテストを表示します。
+    code: pytest --collect-only -q
+  - title: 時間のかかるテストを確認
+    code: pytest --durations
+    options:
+      - label: 件数
+        required: true
+        default: 10
+  - title: 失敗の表示を変える
+    code: pytest --tb
+    options:
+      - label: 形式
+        required: true
+        default: short
+    notes: 形式は auto、long、short、line、native、no から選びます。
+  - title: 警告をエラーにする
+    code: pytest -W error
+  - title: 結果を JUnit XML に保存
+    code: pytest --junit-xml
+    options:
+      - label: ファイル
+        required: true
+        default: report.xml
+  - title: カバレッジを測定
+    code: pytest --cov-report=term-missing
+    options:
+      - flag: --cov
+        label: 対象
+        placeholder: src
+        separator: "="
+        multiple: true
+    notes: pytest-cov が必要です。
+  - title: 並列で実行
+    code: pytest -n
+    options:
+      - label: プロセス数
+        required: true
+        default: auto
+    notes: pytest-xdist が必要です。
+  - title: Python のモジュールとして実行
+    description: 今のフォルダを import の検索先に加えて実行します。
+    code: python3 -m pytest
+    options:
+      - label: パス
+        multiple: true
+        placeholder: tests/
+  - title: uv の環境で実行
+    code: uv run pytest
+    options:
+      - label: パス
+        multiple: true
+        placeholder: tests/
+  - title: フィクスチャの一覧
+    code: pytest --fixtures
+  - title: マーカーの一覧
+    code: pytest --markers
+  - title: バージョンを確認
+    code: pytest --version
