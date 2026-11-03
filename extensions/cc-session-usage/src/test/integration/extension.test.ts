@@ -1,5 +1,6 @@
 import * as assert from 'node:assert';
-import { appendFile, mkdir, writeFile } from 'node:fs/promises';
+import { appendFile, chmod, mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
 import type { SessionUsageApi } from '../../extension';
@@ -70,5 +71,49 @@ suite('CC Session Usage', () => {
     }
     // 新しいターンが上に来る
     assert.deepStrictEqual(api.currentTurnLabels(), ['2. 次の発言', '1. 最初の発言']);
+  });
+
+  test('偽の claude で指摘と質問を分析し、詳細画面に描画する', async () => {
+    const configDir = process.env.CLAUDE_CONFIG_DIR;
+    assert.ok(configDir);
+    await writeFile(
+      join(configDir, 'projects', '-work-app', 'review.jsonl'),
+      [
+        JSON.stringify({ type: 'user', timestamp: '2026-10-07T10:00:00.000Z', cwd: '/work/app', entrypoint: 'cli', message: { content: 'それは違う' } }),
+        JSON.stringify({ type: 'assistant', timestamp: '2026-10-07T10:00:01.000Z', message: { id: 'r1', model: 'claude-opus-5-5', content: [{ type: 'text', text: '直しました' }], usage: { output_tokens: 10 } } }),
+      ].join('\n'),
+    );
+    // 実際の claude を呼ばず、費用をかけない
+    const fake = join(await mkdtemp(join(tmpdir(), 'su-bin-')), 'claude');
+    const output = { is_error: false, total_cost_usd: 0.001, structured_output: { items: [{ turn: 1, kind: 'correction', user_point: '誤りの指摘', response: '修正した', resolved: 'yes' }] } };
+    await writeFile(fake, `#!/bin/sh\ncat > /dev/null\nprintf '%s' '${JSON.stringify(output)}'\n`);
+    await chmod(fake, 0o755);
+    await vscode.workspace.getConfiguration('ccSessionUsage').update('claudePath', fake, vscode.ConfigurationTarget.Global);
+
+    const extension = vscode.extensions.getExtension<SessionUsageApi>('noboon.cc-session-usage');
+    assert.ok(extension);
+    const api = await extension.activate();
+    await api.refresh();
+    const key = '-work-app/review';
+    assert.strictEqual(api.review().pending[key], 1);
+
+    const report = await api.analyze();
+    assert.deepStrictEqual(report.failed, []);
+    const entry = api.review().sessions[key];
+    assert.strictEqual(entry.items[0].quote, 'それは違う');
+    assert.strictEqual(entry.items[0].summary, '誤りの指摘');
+    assert.strictEqual(api.review().pending[key], undefined);
+
+    // 実際の CSP のもとで、分析結果が詳細画面に描画されることを確かめる
+    const rendered = new Promise<number>((resolve) => {
+      const subscription = api.onDidRenderReview((count) => {
+        if (count > 0) {
+          subscription.dispose();
+          resolve(count);
+        }
+      });
+    });
+    await vscode.commands.executeCommand('ccSessionUsage.openSession', key);
+    assert.strictEqual(await rendered, 1);
   });
 });

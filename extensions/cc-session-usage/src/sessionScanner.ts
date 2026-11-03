@@ -3,7 +3,7 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import * as path from 'node:path';
 import { createInterface } from 'node:readline';
 import { SessionParser } from './sessionParser';
-import type { SessionSummary } from './types';
+import type { ConversationTurn, SessionSummary } from './types';
 
 export interface SessionFiles {
   key: string;
@@ -89,7 +89,7 @@ async function readToolUseId(transcript: string): Promise<string | undefined> {
   }
 }
 
-export async function parseSession(files: SessionFiles): Promise<SessionSummary> {
+async function parseFiles(files: SessionFiles): Promise<SessionParser> {
   const parser = new SessionParser(files.id, files.projectDir);
   await readLines(files.transcript, (line) => parser.addLine(line));
   parser.endFile();
@@ -99,7 +99,16 @@ export async function parseSession(files: SessionFiles): Promise<SessionSummary>
     await readLines(file, (line) => parser.addLine(line, source));
     parser.endFile();
   }
-  return parser.finish();
+  return parser;
+}
+
+export async function parseSession(files: SessionFiles): Promise<SessionSummary> {
+  return (await parseFiles(files)).finish();
+}
+
+/** 分析のために、そのセッションの会話を読み直す。本文は集計結果には残していない */
+export async function readConversation(files: SessionFiles): Promise<ConversationTurn[]> {
+  return (await parseFiles(files)).conversation();
 }
 
 export async function scanSessions(configDir: string, known: Record<string, string>): Promise<ScanResult> {

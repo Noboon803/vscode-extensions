@@ -329,6 +329,64 @@ td.name {
   opacity: 0.6;
 }
 
+.tabs {
+  margin-bottom: 16px;
+}
+
+input[type='search'] {
+  flex: 1 1 160px;
+  min-width: 120px;
+  max-width: 320px;
+  padding: 3px 6px;
+  border: 1px solid var(--vscode-input-border, var(--line));
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  font: inherit;
+}
+
+.review-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.review-item p {
+  margin: 2px 0;
+}
+
+.review-summary {
+  font-weight: 600;
+}
+
+/* 種類は文字で示す。色は補助にとどめる */
+.kind {
+  margin-right: 8px;
+  padding: 0 6px;
+  border: 1px solid currentcolor;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+.review-item.correction .kind {
+  color: var(--vscode-editorWarning-foreground, var(--ink));
+}
+
+.review-item.question .kind {
+  color: var(--vscode-textLink-foreground, var(--ink));
+}
+
+.review-item summary {
+  cursor: pointer;
+}
+
+.review-item blockquote {
+  margin: 4px 0;
+  padding: 4px 12px;
+  border-left: 3px solid var(--line);
+  white-space: pre-wrap;
+}
+
 @media (forced-colors: active) {
   .chart .bar,
   .meter {

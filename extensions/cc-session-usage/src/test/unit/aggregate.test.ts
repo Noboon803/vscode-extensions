@@ -1,5 +1,5 @@
 import * as assert from 'node:assert';
-import { aggregate, pickCurrentSession, projectLabel, sessionCost, sumTurns, totalTokens, unallocatedCost } from '../../aggregate';
+import { aggregate, pendingTurns, pickCurrentSession, projectLabel, sessionCost, sumTurns, totalTokens, unallocatedCost } from '../../aggregate';
 import { addDays, localDay } from '../../dates';
 import type { SessionSummary } from '../../types';
 
@@ -171,5 +171,23 @@ suite('aggregate', () => {
   test('日付の計算は月をまたげる', () => {
     assert.strictEqual(addDays('2026-11-01', -1), '2026-10-31');
     assert.strictEqual(localDay(at('2026-11-01')), '2026-11-01');
+  });
+});
+
+suite('pendingTurns', () => {
+  const now = Date.parse('2026-11-03T12:00:00.000Z');
+  const session = (id: string, turns: number, endedAt: number, extra: object = {}) =>
+    ({ id, projectDir: 'p', startedAt: 0, endedAt, turns: Array.from({ length: turns }, () => ({})), daily: [], computedCostUsd: 0, unpricedRequests: 0, unreadableLines: 0, ...extra }) as unknown as SessionSummary;
+
+  test('分析済みを除き、最近活動したセッションは最後のターンを数えない', () => {
+    const old = now - 60 * 60 * 1000;
+    const active = now - 60 * 1000;
+    const pending = pendingTurns([session('old', 5, old), session('active', 5, active), session('done', 2, old)], { 'p/old': { analyzedTurns: 2, items: [], costUsd: 0, rejectedItems: 0 }, 'p/done': { analyzedTurns: 2, items: [], costUsd: 0, rejectedItems: 0 } }, now);
+    assert.deepStrictEqual(pending, { 'p/old': 3, 'p/active': 4 });
+  });
+
+  test('自動実行と履歴が消えたセッションは対象にしない', () => {
+    const old = now - 60 * 60 * 1000;
+    assert.deepStrictEqual(pendingTurns([session('auto', 3, old, { entrypoint: 'sdk-cli' }), session('gone', 3, old, { transcriptRemoved: true })], {}, now), {});
   });
 });

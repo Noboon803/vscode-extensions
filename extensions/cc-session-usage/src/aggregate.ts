@@ -1,5 +1,5 @@
 import { addDays, localDay } from './dates';
-import type { SessionSummary, TokenCounts, TurnSummary } from './types';
+import type { SessionReview, SessionSummary, TokenCounts, TurnSummary } from './types';
 
 export interface UsageFilter {
   /** 今日を含む直近の日数。null は全期間 */
@@ -264,4 +264,29 @@ export function aggregate(sessions: readonly SessionSummary[], filter: UsageFilt
     }
   }
   return totals;
+}
+
+/** 最近更新された履歴の最後のターンは、応答の途中かもしれないので分析しない */
+const ACTIVE_WINDOW_MS = 10 * 60 * 1000;
+
+/** 分析できる最後のターン */
+export function settledTurn(session: Pick<SessionSummary, 'turns' | 'endedAt'>, now: number): number {
+  const total = session.turns.length;
+  return now - session.endedAt < ACTIVE_WINDOW_MS ? Math.max(total - 1, 0) : total;
+}
+
+/** セッションごとの未分析のターン数。自動実行と、元の履歴が消えたセッションは分析できない */
+export function pendingTurns(sessions: SessionSummary[], reviews: Record<string, SessionReview>, now: number): Record<string, number> {
+  const pending: Record<string, number> = {};
+  for (const session of sessions) {
+    if (isAutomated(session) || session.transcriptRemoved) {
+      continue;
+    }
+    const key = sessionKey(session);
+    const count = settledTurn(session, now) - (reviews[key]?.analyzedTurns ?? 0);
+    if (count > 0) {
+      pending[key] = count;
+    }
+  }
+  return pending;
 }

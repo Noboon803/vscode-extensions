@@ -62,3 +62,53 @@ export interface UsageSnapshot {
   updatedAt: number;
   error?: string;
 }
+
+/** 分析に渡す 1 ターン分の会話 */
+export interface ConversationTurn {
+  /** 1 から数えた番号。ターン一覧の番号と同じ */
+  number: number;
+  at: number;
+  user: string;
+  /** スラッシュコマンドなど、ユーザーの発言ではないもの。分類しない */
+  isCommand: boolean;
+  assistant: string;
+  /** メインのエージェントが呼んだツールの名前と回数 */
+  tools: Record<string, number>;
+}
+
+export type ReviewKind = 'correction' | 'question';
+export type ReviewResolution = 'yes' | 'partial' | 'no' | 'unknown';
+
+export interface ReviewItem {
+  turn: number;
+  kind: ReviewKind;
+  /** ユーザーの発言の原文。モデルの出力ではなく履歴から取る */
+  quote: string;
+  /** モデルによる要約 */
+  summary: string;
+  /** モデルによる、対応や回答の要約 */
+  response: string;
+  resolved: ReviewResolution;
+  at: number;
+}
+
+export interface SessionReview {
+  /** ここまでのターンは分析済み */
+  analyzedTurns: number;
+  items: ReviewItem[];
+  /** 分析にかかった費用の累計 */
+  costUsd: number;
+  /** モデルの出力のうち、検証を通らず捨てた件数 */
+  rejectedItems: number;
+  model?: string;
+}
+
+/** 指摘と質問の一覧を描画するためのデータ */
+export interface ReviewSnapshot {
+  sessions: Record<string, SessionReview>;
+  /** セッションごとの、まだ分析していないターンの数 */
+  pending: Record<string, number>;
+  /** 実行中の処理の説明 */
+  busy?: string;
+  error?: string;
+}

@@ -1,9 +1,14 @@
 import { randomBytes } from 'node:crypto';
 import * as vscode from 'vscode';
 import { PRICES_AS_OF } from './pricing';
+import type { ReviewService } from './reviewService';
 import type { UsageService } from './usageService';
 
-type PanelMessage = { type: 'ready' } | { type: 'refresh' } | { type: 'rendered'; rows: number };
+type PanelMessage =
+  | { type: 'ready' }
+  | { type: 'refresh' }
+  | { type: 'rendered'; rows: number; reviewItems: number }
+  | { type: 'analyze'; sessionKey?: string };
 
 export interface PanelTarget {
   sessionKey: string;
@@ -22,15 +27,21 @@ export class UsagePanel implements vscode.Disposable {
   private readonly rendered = new vscode.EventEmitter<number>();
   /** Webview が受け取ったデータを描画したときに、表の行数を知らせる */
   readonly onDidRender = this.rendered.event;
+  private readonly renderedReview = new vscode.EventEmitter<number>();
+  /** Webview が描画した、指摘と質問の項目の数を知らせる */
+  readonly onDidRenderReview = this.renderedReview.event;
   private readonly visibilityChanged = new vscode.EventEmitter<void>();
   readonly onDidChangeVisibility = this.visibilityChanged.event;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
     private readonly service: UsageService,
+    private readonly review: ReviewService,
+    private readonly analyze: (sessionKey: string | undefined) => void,
   ) {
     this.disposables = [
       service.onDidChange(() => this.send()),
+      review.onDidChange(() => this.send()),
       vscode.window.registerWebviewPanelSerializer(UsagePanel.viewType, {
         deserializeWebviewPanel: async (panel) => this.attach(panel),
       }),
@@ -40,6 +51,7 @@ export class UsagePanel implements vscode.Disposable {
   dispose(): void {
     this.disposables.forEach((disposable) => disposable.dispose());
     this.rendered.dispose();
+    this.renderedReview.dispose();
     this.visibilityChanged.dispose();
     this.panel?.dispose();
   }
@@ -90,6 +102,9 @@ export class UsagePanel implements vscode.Disposable {
           void this.service.refresh();
         } else if (message.type === 'rendered') {
           this.rendered.fire(message.rows);
+          this.renderedReview.fire(message.reviewItems);
+        } else if (message.type === 'analyze') {
+          this.analyze(typeof message.sessionKey === 'string' ? message.sessionKey : undefined);
         }
       }),
       // 実行中のセッションは増え続けるので、画面に戻ったら読み直す
@@ -112,7 +127,7 @@ export class UsagePanel implements vscode.Disposable {
   }
 
   private send(): void {
-    void this.panel?.webview.postMessage({ type: 'data', snapshot: this.service.current(), pricesAsOf: PRICES_AS_OF });
+    void this.panel?.webview.postMessage({ type: 'data', snapshot: this.service.current(), review: this.review.current(), pricesAsOf: PRICES_AS_OF });
   }
 
   private renderHtml(webview: vscode.Webview): string {

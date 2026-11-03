@@ -1,7 +1,7 @@
 {
   "name": "cc-session-usage",
   "displayName": "CC Session Usage",
-  "description": "Claude Code のセッション履歴から、トークン量とコストをターンごとに集計して表示する拡張機能",
+  "description": "Claude Code のセッション履歴から、トークン量とコストをターンごとに集計し、ユーザーの指摘と質問、それへの対応を一覧にする拡張機能",
   "version": "0.0.1",
   "publisher": "noboon",
   "private": true,
@@ -33,6 +33,11 @@
       {
         "command": "ccSessionUsage.openSession",
         "title": "セッションを開く",
+        "category": "CC Session Usage"
+      },
+      {
+        "command": "ccSessionUsage.analyzeAll",
+        "title": "未分析のターンから指摘と質問を分析",
         "category": "CC Session Usage"
       }
     ],
@@ -97,6 +102,23 @@
           "default": "",
           "scope": "machine",
           "markdownDescription": "Claude Code の設定フォルダ。`~` を使えます。空の場合は、環境変数 `CLAUDE_CONFIG_DIR`、なければ `~/.claude` を使います。"
+        },
+        "ccSessionUsage.claudePath": {
+          "type": "string",
+          "default": "claude",
+          "scope": "machine",
+          "markdownDescription": "指摘と質問の分析に使う `claude` コマンドのパス。見つからないと言われたときは、`which claude` の結果を指定します。"
+        },
+        "ccSessionUsage.reviewModel": {
+          "type": "string",
+          "default": "claude-haiku-5-5",
+          "enum": [
+            "claude-haiku-5-5",
+            "claude-sonnet-5-5",
+            "claude-opus-5-5"
+          ],
+          "scope": "machine",
+          "markdownDescription": "指摘と質問の分析に使うモデル。"
         }
       }
     }

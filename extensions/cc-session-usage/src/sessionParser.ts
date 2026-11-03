@@ -1,6 +1,6 @@
 import { localDay } from './dates';
 import { normalizeModel, type RawUsage, requestCost } from './pricing';
-import type { DailyUsage, SessionSummary, TokenCounts, TurnSummary } from './types';
+import type { ConversationTurn, DailyUsage, SessionSummary, TokenCounts, TurnSummary } from './types';
 
 /** 集計方法を変えたら上げる。保存済みの集計を作り直す */
 export const PARSER_VERSION = 2;
@@ -16,6 +16,15 @@ const INJECTED_PREFIXES = [
   '[Request interrupted',
 ];
 
+/** 発言の中に差し込まれるブロック。分析の邪魔になるうえ、長いことがある */
+const INJECTED_BLOCKS = /<(system-reminder|ide_opened_file|ide_selection|ide_diagnostics)>[\s\S]*?<\/\1>/g;
+/** 貼り付けた内容を囲むタグ。中身は発言の一部なので残す */
+const PASTE_TAGS = /<\/?pasted_content[^>]*>/g;
+const MAX_USER_CHARS = 4000;
+/** 最後のメッセージが結論なので、長い応答は末尾を残す */
+const MAX_ASSISTANT_CHARS = 2000;
+const NO_PROMPT = '（最初の発言より前）';
+
 type JsonRecord = Record<string, unknown>;
 
 interface RequestEntry {
@@ -29,7 +38,12 @@ interface RequestEntry {
 interface MutableTurn {
   startedAt: number;
   prompt: string;
+  /** 分析に渡す発言の本文 */
+  fullText: string;
   isCommand: boolean;
+  /** 応答の本文の末尾。サブエージェントは含まない */
+  assistant: string;
+  toolCounts: Record<string, number>;
   tools: number;
   linesAdded: number;
   linesRemoved: number;
@@ -99,7 +113,16 @@ function preview(text: string): string {
 }
 
 /** ユーザーが始めたターンなら表示用の文字列を返す。それ以外は undefined */
-function promptOf(record: JsonRecord, message: JsonRecord): { text: string; isCommand: boolean } | undefined {
+function cleanText(text: string): string {
+  const cleaned = text.replace(INJECTED_BLOCKS, '').replace(PASTE_TAGS, '').trim();
+  if (cleaned.length <= MAX_USER_CHARS) {
+    return cleaned;
+  }
+  const head = Math.floor(MAX_USER_CHARS * 0.7);
+  return `${cleaned.slice(0, head)}\n…（中略）…\n${cleaned.slice(-(MAX_USER_CHARS - head))}`;
+}
+
+function promptOf(record: JsonRecord, message: JsonRecord): { text: string; fullText: string; isCommand: boolean } | undefined {
   if (record.isMeta === true || record.isCompactSummary === true || record.isSidechain === true) {
     return undefined;
   }
@@ -119,12 +142,13 @@ function promptOf(record: JsonRecord, message: JsonRecord): { text: string; isCo
   // スラッシュコマンドは `<command-message>` などに続いて記録される。文中の引用と区別するため先頭だけを見る
   if (trimmed.startsWith('<command-')) {
     const command = /<command-name>([^<]*)<\/command-name>/.exec(trimmed);
-    return { text: command ? command[1] : 'コマンド', isCommand: true };
+    const name = command ? command[1] : 'コマンド';
+    return { text: name, fullText: name, isCommand: true };
   }
   if (trimmed === '') {
-    return hasImage(content) ? { text: '（画像）', isCommand: false } : undefined;
+    return hasImage(content) ? { text: '（画像）', fullText: '（画像）', isCommand: false } : undefined;
   }
-  return { text: preview(text), isCommand: false };
+  return { text: preview(text), fullText: cleanText(text), isCommand: false };
 }
 
 /**
@@ -221,8 +245,8 @@ export class SessionParser {
     return parsed;
   }
 
-  private newTurn(startedAt: number, prompt: string, isCommand: boolean): MutableTurn {
-    const turn: MutableTurn = { startedAt, prompt, isCommand, tools: 0, linesAdded: 0, linesRemoved: 0, files: new Set() };
+  private newTurn(startedAt: number, prompt: string, fullText: string, isCommand: boolean): MutableTurn {
+    const turn: MutableTurn = { startedAt, prompt, fullText, isCommand, assistant: '', toolCounts: {}, tools: 0, linesAdded: 0, linesRemoved: 0, files: new Set() };
     this.turns.push(turn);
     return turn;
   }
@@ -240,7 +264,7 @@ export class SessionParser {
         return byTime;
       }
     }
-    return this.turns.at(-1) ?? this.newTurn(timestamp, '（最初の発言より前）', false);
+    return this.turns.at(-1) ?? this.newTurn(timestamp, NO_PROMPT, NO_PROMPT, false);
   }
 
   private addUser(record: JsonRecord, isSubagent: boolean, toolUseId: string | undefined): void {
@@ -253,7 +277,7 @@ export class SessionParser {
     if (!isSubagent) {
       const prompt = promptOf(record, message);
       if (prompt) {
-        this.newTurn(timestamp, prompt.text, prompt.isCommand);
+        this.newTurn(timestamp, prompt.text, prompt.fullText, prompt.isCommand);
         return;
       }
     }
@@ -330,6 +354,16 @@ export class SessionParser {
           this.seenToolUses.add(block.id);
           turn.tools++;
           this.turnByToolUse.set(block.id, turn);
+          if (!sub && typeof block.name === 'string') {
+            turn.toolCounts[block.name] = (turn.toolCounts[block.name] ?? 0) + 1;
+          }
+        }
+      }
+      if (!sub) {
+        const text = messageText(message.content).trim();
+        if (text !== '') {
+          const joined = turn.assistant === '' ? text : `${turn.assistant}\n${text}`;
+          turn.assistant = joined.length > MAX_ASSISTANT_CHARS ? `…${joined.slice(-MAX_ASSISTANT_CHARS)}` : joined;
         }
       }
     }
@@ -352,6 +386,22 @@ export class SessionParser {
       return;
     }
     this.requests.set(id, { model: normalizeModel(message.model), usage, turn, timestamp, isSubagent: sub });
+  }
+
+  /** 分析に渡す会話。番号は finish() が返すターンと一致する */
+  conversation(): ConversationTurn[] {
+    const called = new Set([...this.requests.values()].map((entry) => entry.turn));
+    return this.turns
+      .filter((turn) => !turn.isCommand || called.has(turn))
+      .map((turn, index) => ({
+        number: index + 1,
+        at: turn.startedAt,
+        user: turn.fullText,
+        // 最初の発言より前のターンにはユーザーの発言がないので、コマンドと同じく分類しない
+        isCommand: turn.isCommand || turn.prompt === NO_PROMPT,
+        assistant: turn.assistant,
+        tools: turn.toolCounts,
+      }));
   }
 
   finish(): SessionSummary {

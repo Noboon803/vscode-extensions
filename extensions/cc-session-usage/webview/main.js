@@ -21,6 +21,14 @@ const BAR_GAP = 2;
 /** 棒が多いときは、Tab キーで 1 本ずつ移動させず、下の表で読めるようにする */
 const MAX_FOCUSABLE_BARS = 60;
 const TOOLTIP_PROMPT_LENGTH = 60;
+const MAX_REVIEW_ROWS = 500;
+const REVIEW_KINDS = [
+  { value: 'all', label: 'すべて' },
+  { value: 'correction', label: '指摘' },
+  { value: 'question', label: '質問' },
+];
+const KIND_LABELS = { correction: '指摘', question: '質問' };
+const RESOLUTION_LABELS = { yes: '対応済み', partial: '一部のみ', no: '未対応', unknown: '不明' };
 
 const saved = vscode.getState() ?? {};
 const state = {
@@ -30,6 +38,11 @@ const state = {
   project: saved.project ?? null,
   sessionKey: saved.sessionKey ?? null,
   sortKey: saved.sortKey ?? 'date',
+  review: undefined,
+  /** 一覧画面のタブ。usage は使用量、review は指摘と質問 */
+  tab: saved.tab === 'review' ? 'review' : 'usage',
+  reviewKind: saved.reviewKind ?? 'all',
+  reviewSearch: '',
   loading: false,
   dailyTableOpen: false,
   highlightTurn: null,
@@ -45,6 +58,8 @@ function h(tag, props = {}, ...children) {
       element.addEventListener('click', value);
     } else if (key === 'onChange') {
       element.addEventListener('change', value);
+    } else if (key === 'onInput') {
+      element.addEventListener('input', value);
     } else if (key === 'onToggle') {
       element.addEventListener('toggle', value);
     } else if (key === 'className') {
@@ -104,7 +119,7 @@ function shortDay(date) {
 }
 
 function persist() {
-  vscode.setState({ days: state.days, project: state.project, sessionKey: state.sessionKey, sortKey: state.sortKey });
+  vscode.setState({ days: state.days, project: state.project, sessionKey: state.sessionKey, sortKey: state.sortKey, tab: state.tab, reviewKind: state.reviewKind });
 }
 
 function showTooltip(event, title, value) {
@@ -242,6 +257,208 @@ function requestRefresh() {
   state.loading = true;
   render();
   vscode.postMessage({ type: 'refresh' });
+}
+
+function renderTabs() {
+  const tabs = [
+    { value: 'usage', label: '使用量' },
+    { value: 'review', label: '指摘と質問' },
+  ];
+  return h(
+    'div',
+    { className: 'segmented tabs', role: 'group', 'aria-label': '表示する内容' },
+    tabs.map((tab) =>
+      h(
+        'button',
+        {
+          type: 'button',
+          'aria-pressed': String(state.tab === tab.value),
+          onClick: () => {
+            state.tab = tab.value;
+            persist();
+            render();
+          },
+        },
+        tab.label,
+      ),
+    ),
+  );
+}
+
+function pendingTotal() {
+  return Object.values(state.review?.pending ?? {}).reduce((sum, count) => sum + count, 0);
+}
+
+function reviewStatus() {
+  return [
+    state.review?.busy ? h('p', { className: 'banner', role: 'status' }, state.review.busy) : null,
+    state.review?.error ? h('p', { className: 'banner', role: 'alert' }, `分析結果を読めませんでした: ${state.review.error}`) : null,
+  ].filter(Boolean);
+}
+
+function openTurn(key, turn) {
+  state.sessionKey = key;
+  state.highlightTurn = turn - 1;
+  persist();
+  render();
+  highlightedTurnRow()?.scrollIntoView({ block: 'center' });
+}
+
+function reviewItem(session, item, showSession) {
+  const key = sessionKey(session);
+  return h(
+    'article',
+    { className: `review-item ${item.kind}` },
+    h('p', { className: 'review-summary' }, h('span', { className: 'kind' }, KIND_LABELS[item.kind]), item.summary),
+    h('p', {}, h('span', { className: 'subtle' }, item.kind === 'correction' ? '対応: ' : '回答: '), item.response),
+    h('details', {}, h('summary', { className: 'subtle' }, '発言の原文'), h('blockquote', {}, item.quote)),
+    h(
+      'p',
+      { className: 'note' },
+      `${RESOLUTION_LABELS[item.resolved] ?? item.resolved} ・ `,
+      showSession ? [h('button', { type: 'button', className: 'link', onClick: () => openTurn(key, item.turn) }, `${sessionTitle(session)} のターン ${item.turn}`), ` ・ ${projectLabel(session)} ・ `] : h('button', { type: 'button', className: 'link', onClick: () => openTurn(key, item.turn) }, `ターン ${item.turn}`),
+      showSession ? '' : ' ・ ',
+      formatDateTime(item.at),
+    ),
+  );
+}
+
+function reviewRows() {
+  const search = state.reviewSearch.trim().toLowerCase();
+  const rows = [];
+  // 履歴が消えて選択中のプロジェクトがなくなっても、理由なく空にしない
+  const projectFilter = state.snapshot.sessions.some((session) => session.projectDir === state.project) ? state.project : null;
+  for (const session of state.snapshot.sessions) {
+    if (projectFilter && session.projectDir !== projectFilter) {
+      continue;
+    }
+    for (const item of state.review?.sessions[sessionKey(session)]?.items ?? []) {
+      if (state.reviewKind !== 'all' && item.kind !== state.reviewKind) {
+        continue;
+      }
+      if (search && ![item.summary, item.response, item.quote].some((text) => text.toLowerCase().includes(search))) {
+        continue;
+      }
+      rows.push({ session, item });
+    }
+  }
+  return rows.sort((a, b) => b.item.at - a.item.at);
+}
+
+function reviewListNodes() {
+  const rows = reviewRows();
+  const nodes = rows.slice(0, MAX_REVIEW_ROWS).map(({ session, item }) => reviewItem(session, item, true));
+  if (rows.length > MAX_REVIEW_ROWS) {
+    nodes.push(h('p', { className: 'note' }, `新しい ${MAX_REVIEW_ROWS} 件を表示しています（全 ${rows.length} 件）。絞り込むと残りも確認できます。`));
+  }
+  if (rows.length === 0) {
+    const analyzed = Object.keys(state.review?.sessions ?? {}).length > 0;
+    nodes.push(h('p', { className: 'empty' }, analyzed ? '条件に合う項目はありません。' : 'まだ分析していません。「未分析のターンを分析」を押すと、費用の目安を確認したうえで、ユーザーの指摘と質問、それへの対応をここに一覧にします。'));
+  }
+  return nodes;
+}
+
+function renderReviewOverview() {
+  const { snapshot, review } = state;
+  const pending = pendingTotal();
+  const all = Object.values(review?.sessions ?? {});
+  const items = all.flatMap((entry) => entry.items);
+  const corrections = items.filter((item) => item.kind === 'correction').length;
+  const cost = all.reduce((sum, entry) => sum + entry.costUsd, 0);
+  const projects = aggregate(snapshot.sessions, { days: null, project: null, today: localDay(Date.now()) }).projects.sort((a, b) => a.label.localeCompare(b.label));
+  return [
+    h('h1', {}, '指摘と質問'),
+    h('p', { className: 'note' }, 'ターンのうち、エージェントへの指摘と質問を抽出し、それへの対応や回答と並べます。分類と要約はモデルによるもので、誤りや漏れがあります。判断するときは発言の原文を確認してください。'),
+    h('p', { className: 'note' }, `指摘 ${corrections} 件 ・ 質問 ${items.length - corrections} 件 ・ 分析の費用 ${formatUsd(cost)} ・ 未分析のターン ${pending} 件`),
+    ...reviewStatus(),
+    h(
+      'div',
+      { className: 'toolbar' },
+      h(
+        'div',
+        { className: 'segmented', role: 'group', 'aria-label': '種類' },
+        REVIEW_KINDS.map((kind) =>
+          h(
+            'button',
+            {
+              type: 'button',
+              'aria-pressed': String(state.reviewKind === kind.value),
+              onClick: () => {
+                state.reviewKind = kind.value;
+                persist();
+                render();
+              },
+            },
+            kind.label,
+          ),
+        ),
+      ),
+      h(
+        'select',
+        {
+          'aria-label': 'プロジェクト',
+          onChange: (event) => {
+            state.project = event.target.value || null;
+            persist();
+            render();
+          },
+        },
+        h('option', { value: '', selected: !state.project }, 'すべてのプロジェクト'),
+        projects.map((project) => h('option', { value: project.projectDir, selected: project.projectDir === state.project, title: project.path }, project.label)),
+      ),
+      h('input', {
+        type: 'search',
+        placeholder: '検索',
+        'aria-label': '検索',
+        value: state.reviewSearch,
+        onInput: (event) => {
+          state.reviewSearch = event.target.value;
+          document.getElementById('review-list')?.replaceChildren(...reviewListNodes());
+        },
+      }),
+      h('span', { className: 'spacer' }),
+      h('button', { type: 'button', disabled: pending === 0 || Boolean(review?.busy), title: '実行前に費用の目安を確認します', onClick: () => vscode.postMessage({ type: 'analyze' }) }, pending > 0 ? `未分析のターン ${pending} 件を分析` : '未分析のターンなし'),
+    ),
+    h('section', { id: 'review-list' }, reviewListNodes()),
+  ];
+}
+
+function renderSessionReview(session) {
+  const key = sessionKey(session);
+  const entry = state.review?.sessions[key];
+  const pending = state.review?.pending[key] ?? 0;
+  const items = [...(entry?.items ?? [])].sort((a, b) => a.turn - b.turn);
+  const corrections = items.filter((item) => item.kind === 'correction').length;
+  let message;
+  if (entry && items.length === 0) {
+    message = '分析したターンに、指摘と質問は見つかりませんでした。';
+  } else if (!entry) {
+    if (pending > 0) {
+      message = 'まだ分析していません。分析すると、ユーザーの指摘と質問、それへの対応をここに一覧にします。';
+    } else if (isAutomated(session)) {
+      message = '自動実行のセッションは分析の対象外です。';
+    } else if (session.transcriptRemoved) {
+      message = '元の履歴が削除されているため、分析できません。';
+    } else {
+      message = '応答中かもしれない最後のターンは、最後の更新から 10 分たつと分析できます。';
+    }
+  }
+  return h(
+    'section',
+    { id: 'session-review' },
+    h(
+      'div',
+      { className: 'toolbar' },
+      h('h2', {}, '指摘と質問'),
+      h('span', { className: 'spacer' }),
+      pending > 0 ? h('button', { type: 'button', disabled: Boolean(state.review?.busy), title: '実行前に費用の目安を確認します', onClick: () => vscode.postMessage({ type: 'analyze', sessionKey: key }) }, `未分析のターン ${pending} 件を分析`) : null,
+    ),
+    entry && items.length > 0 ? h('p', { className: 'note' }, `指摘 ${corrections} 件 ・ 質問 ${items.length - corrections} 件 ・ 分析の費用 ${formatUsd(entry.costUsd)}。分類と要約はモデルによるもので、誤りや漏れがあります。`) : null,
+    entry?.rejectedItems ? h('p', { className: 'note' }, `モデルの出力のうち ${entry.rejectedItems} 件は、検証を通らなかったため除外しました。`) : null,
+    ...reviewStatus(),
+    message ? h('p', { className: 'note' }, message) : null,
+    items.map((item) => reviewItem(session, item, false)),
+  );
 }
 
 function renderOverview() {
@@ -487,6 +704,9 @@ function renderSession(session) {
         '← 一覧へ戻る',
       ),
       h('span', { className: 'spacer' }),
+      turns.length > 0
+        ? h('button', { type: 'button', onClick: () => document.getElementById('session-review')?.scrollIntoView() }, `指摘と質問（${state.review?.sessions[sessionKey(session)]?.items.length ?? 0} 件）へ移動`)
+        : null,
       refreshButton(),
     ),
     h('h1', {}, sessionTitle(session)),
@@ -544,12 +764,13 @@ function renderSession(session) {
       ),
     ),
     h('section', {}, h('h2', {}, 'ターン終了時のコンテキスト量（トークン）'), barChart(items((turn) => turn.contextTokens, (turn) => formatCount(turn.contextTokens)), formatCount)),
-    h('section', { id: 'turn-list' }, h('h2', {}, 'ターン一覧'), turnTable(turns)),
+    renderSessionReview(session),
+    h('section', { id: 'turn-list' }, h('h2', {}, 'ターン一覧'), turnTable(turns, state.review?.sessions[sessionKey(session)]?.items ?? [])),
   );
   return children;
 }
 
-function turnTable(turns) {
+function turnTable(turns, reviewItems) {
   const sums = sumTurns(turns);
   return dataTable(
     [
@@ -573,7 +794,7 @@ function turnTable(turns) {
       return [
         String(index + 1),
         formatTime(turn.startedAt),
-        [turn.prompt, turn.subagentCostUsd > 0 ? h('span', { className: 'badge' }, `サブエージェント ${formatUsd(turn.subagentCostUsd)}`) : null],
+        [turn.prompt, ...reviewItems.filter((item) => item.turn === index + 1).map((item) => h('span', { className: 'badge' }, KIND_LABELS[item.kind])), turn.subagentCostUsd > 0 ? h('span', { className: 'badge' }, `サブエージェント ${formatUsd(turn.subagentCostUsd)}`) : null],
         formatUsd(turn.costUsd),
         previous ? formatUsdDelta(turn.costUsd - previous.costUsd) : '—',
         formatCount(turn.tokens.input),
@@ -613,7 +834,11 @@ function render() {
     return;
   }
   const selected = state.sessionKey ? state.snapshot.sessions.find((session) => sessionKey(session) === state.sessionKey) : undefined;
-  app.replaceChildren(...(selected ? renderSession(selected) : renderOverview()));
+  if (selected) {
+    app.replaceChildren(...renderSession(selected));
+  } else {
+    app.replaceChildren(renderTabs(), ...(state.tab === 'review' ? renderReviewOverview() : renderOverview()));
+  }
   highlightedTurnRow()?.classList.add('highlight');
 }
 
@@ -621,19 +846,24 @@ function highlightedTurnRow() {
   return state.highlightTurn === null ? null : document.querySelectorAll('#turn-list tbody tr')[state.highlightTurn];
 }
 
+function notifyRendered() {
+  vscode.postMessage({ type: 'rendered', rows: document.querySelectorAll('tbody tr').length, reviewItems: document.querySelectorAll('.review-item').length });
+}
+
 window.addEventListener('message', (event) => {
   if (event.data?.type === 'data') {
-    const data = JSON.stringify([event.data.snapshot.sessions, event.data.snapshot.error]);
+    const data = JSON.stringify([event.data.snapshot.sessions, event.data.snapshot.error, event.data.review]);
     const unchanged = data === state.lastData;
     state.lastData = data;
     state.snapshot = event.data.snapshot;
     state.pricesAsOf = event.data.pricesAsOf;
+    state.review = event.data.review;
     // 自動更新のたびに描き直すと、読んでいる最中の選択やツールチップが消える
     if (!unchanged || state.loading) {
       state.loading = false;
       render();
     }
-    vscode.postMessage({ type: 'rendered', rows: document.querySelectorAll('tbody tr').length });
+    notifyRendered();
   } else if (event.data?.type === 'show') {
     state.sessionKey = event.data.sessionKey;
     state.highlightTurn = event.data.turn ?? null;
@@ -645,6 +875,7 @@ window.addEventListener('message', (event) => {
     } else {
       window.scrollTo(0, 0);
     }
+    notifyRendered();
   }
 });
 
