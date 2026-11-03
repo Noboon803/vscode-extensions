@@ -2,6 +2,7 @@
   "folders": [
     { "name": "cheatsheet", "path": "extensions/cheatsheet" },
     { "name": "extension-audit", "path": "extensions/extension-audit" },
+    { "name": "markdown-viewer", "path": "extensions/markdown-viewer" },
     { "name": "workspace-root", "path": "." }
   ],
   "settings": {
