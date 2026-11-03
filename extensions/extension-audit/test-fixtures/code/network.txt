@@ -1,0 +1,4 @@
+const https = require('https');
+fetch('https://api.example.test/v1');
+new WebSocket('wss://socket.example.test/live');
+https.get('https://198.51.100.7/ping');

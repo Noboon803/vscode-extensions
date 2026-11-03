@@ -1,0 +1,131 @@
+{
+  "name": "extension-audit",
+  "displayName": "Extension Audit",
+  "description": "インストール済みの VS Code 拡張機能を、実行せずに静的解析で検査する拡張機能",
+  "version": "0.0.2",
+  "publisher": "noboon",
+  "private": true,
+  "engines": {
+    "vscode": "^1.144.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "extensionAudit.scan",
+        "title": "すべての拡張機能を検査",
+        "category": "Extension Audit",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "extensionAudit.openFinding",
+        "title": "検出箇所を開く",
+        "category": "Extension Audit"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "extensionAudit.openFinding",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "extensionAudit.scan",
+          "when": "view == extensionAudit.results",
+          "group": "navigation"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "extensionAudit",
+          "title": "Extension Audit",
+          "icon": "$(shield)"
+        }
+      ]
+    },
+    "views": {
+      "extensionAudit": [
+        {
+          "id": "extensionAudit.results",
+          "name": "検査結果",
+          "icon": "$(shield)"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "extensionAudit.results",
+        "contents": "まだ検査していません。インストール済みの拡張機能を、実行せずにコードを読んで調べます。\n[検査を開始](command:extensionAudit.scan)"
+      }
+    ],
+    "configuration": {
+      "title": "Extension Audit",
+      "properties": {
+        "extensionAudit.extensionsPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "検査する拡張機能のインストール先。`~` を使えます。空の場合は `~/.vscode/extensions` を検査します。"
+        },
+        "extensionAudit.trustedPublishers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9-]*$",
+            "patternErrorMessage": "開発元 ID をそのまま指定します（例: ms-python）。ワイルドカードは使えません。"
+          },
+          "uniqueItems": true,
+          "default": [],
+          "scope": "application",
+          "markdownDescription": "検査を省略する開発元の ID（拡張機能 ID の `.` より前）。完全一致で判定し、Marketplace からインストールしたものだけを除外します。Microsoft のように、開発元によって ID が分かれている場合は、それぞれ指定します。ユーザー設定でのみ指定できます。"
+        },
+        "extensionAudit.excludedExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9-]*\\.[A-Za-z0-9][A-Za-z0-9-]*$",
+            "patternErrorMessage": "拡張機能 ID をそのまま指定します（例: ms-dotnettools.vscode-dotnet-runtime）。ワイルドカードは使えません。"
+          },
+          "uniqueItems": true,
+          "default": [],
+          "scope": "application",
+          "markdownDescription": "検査を省略する拡張機能の ID（`開発元.名前`）。完全一致で判定し、自作の VSIX なども除外できます。ユーザー設定でのみ指定できます。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.mjs",
+    "package": "npm run check-types && npm run lint && node esbuild.mjs --production",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.mjs --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "compile-tests": "tsc -p . --outDir out",
+    "test:unit": "npm run compile-tests && mocha --ui tdd \"out/test/unit/**/*.test.js\"",
+    "pretest": "npm run compile-tests && npm run compile",
+    "test": "vscode-test",
+    "vsix": "vsce package --no-dependencies --allow-missing-repository --skip-license"
+  },
+  "devDependencies": {
+    "@types/vscode": "~1.144.0"
+  },
+  "dependencies": {
+    "acorn": "8.19.0"
+  }
+}

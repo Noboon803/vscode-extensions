@@ -1,0 +1,2 @@
+const cp = process.mainModule.require('child_process');
+cp.exec('echo hello');

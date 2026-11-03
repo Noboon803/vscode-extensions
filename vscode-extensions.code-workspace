@@ -1,6 +1,7 @@
 {
   "folders": [
     { "name": "cheatsheet", "path": "extensions/cheatsheet" },
+    { "name": "extension-audit", "path": "extensions/extension-audit" },
     { "name": "workspace-root", "path": "." }
   ],
   "settings": {

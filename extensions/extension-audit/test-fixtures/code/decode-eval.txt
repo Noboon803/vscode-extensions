@@ -1,0 +1,2 @@
+const text = Buffer.from('MSArIDE=', 'base64').toString();
+eval(text);

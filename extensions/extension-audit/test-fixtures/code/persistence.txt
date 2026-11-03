@@ -1,0 +1,2 @@
+const target = path.join(os.homedir(), 'Library/LaunchAgents/com.example.test.plist');
+console.log(target);

@@ -1,0 +1,2 @@
+const text = String.fromCharCode(101, 99, 104, 111, 32, 104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 32, 104, 101, 108, 108, 111);
+require('child_process').exec(text);
