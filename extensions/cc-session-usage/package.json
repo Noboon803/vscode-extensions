@@ -1,0 +1,122 @@
+{
+  "name": "cc-session-usage",
+  "displayName": "CC Session Usage",
+  "description": "Claude Code のセッション履歴から、トークン量とコストをターンごとに集計して表示する拡張機能",
+  "version": "0.0.1",
+  "publisher": "noboon",
+  "private": true,
+  "engines": {
+    "vscode": "^1.144.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished",
+    "onWebviewPanel:ccSessionUsage.panel"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "ccSessionUsage.open",
+        "title": "使用量を表示",
+        "category": "CC Session Usage",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "ccSessionUsage.refresh",
+        "title": "更新",
+        "category": "CC Session Usage",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ccSessionUsage.openSession",
+        "title": "セッションを開く",
+        "category": "CC Session Usage"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "ccSessionUsage.openSession",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "ccSessionUsage.refresh",
+          "when": "view == ccSessionUsage.currentSession || view == ccSessionUsage.sessions",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ccSessionUsage.open",
+          "when": "view == ccSessionUsage.currentSession || view == ccSessionUsage.sessions",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ccSessionUsage",
+          "title": "CC Session Usage",
+          "icon": "$(graph)"
+        }
+      ]
+    },
+    "views": {
+      "ccSessionUsage": [
+        {
+          "id": "ccSessionUsage.currentSession",
+          "name": "現在のセッション",
+          "icon": "$(graph)"
+        },
+        {
+          "id": "ccSessionUsage.sessions",
+          "name": "セッション",
+          "icon": "$(graph)"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "ccSessionUsage.currentSession",
+        "contents": "まだ表示できるセッションがありません。Claude Code で会話を始めると、ターンの一覧がここに表示されます。\n[更新](command:ccSessionUsage.refresh)"
+      },
+      {
+        "view": "ccSessionUsage.sessions",
+        "contents": "まだセッションがありません。"
+      }
+    ],
+    "configuration": {
+      "title": "CC Session Usage",
+      "properties": {
+        "ccSessionUsage.claudeConfigDir": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "Claude Code の設定フォルダ。`~` を使えます。空の場合は、環境変数 `CLAUDE_CONFIG_DIR`、なければ `~/.claude` を使います。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.mjs",
+    "package": "npm run check-types && npm run lint && node esbuild.mjs --production",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.mjs --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "compile-tests": "tsc -p . --outDir out",
+    "test:unit": "npm run compile-tests && mocha --ui tdd \"out/test/unit/**/*.test.js\"",
+    "pretest": "npm run compile-tests && npm run compile",
+    "test": "vscode-test",
+    "vsix": "vsce package --no-dependencies --allow-missing-repository --skip-license"
+  },
+  "devDependencies": {
+    "@types/vscode": "~1.144.0"
+  }
+}

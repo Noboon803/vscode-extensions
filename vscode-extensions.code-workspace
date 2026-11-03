@@ -3,6 +3,7 @@
     { "name": "cheatsheet", "path": "extensions/cheatsheet" },
     { "name": "extension-audit", "path": "extensions/extension-audit" },
     { "name": "markdown-viewer", "path": "extensions/markdown-viewer" },
+    { "name": "cc-session-usage", "path": "extensions/cc-session-usage" },
     { "name": "workspace-root", "path": "." }
   ],
   "settings": {

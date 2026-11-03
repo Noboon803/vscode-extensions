@@ -1,0 +1,338 @@
+:root {
+  --ink: var(--vscode-foreground);
+  --muted: var(--vscode-descriptionForeground);
+  --line: var(--vscode-widget-border, var(--vscode-panel-border, rgba(128, 128, 128, 0.3)));
+  --mark: var(--vscode-charts-blue, #3b82f6);
+  --surface-raised: var(--vscode-editorWidget-background, transparent);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--ink);
+  background: var(--vscode-editor-background);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  line-height: 1.5;
+}
+
+main {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 20px 24px 48px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5em;
+  font-weight: 600;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 1.05em;
+  font-weight: 600;
+}
+
+section {
+  margin-top: 28px;
+}
+
+.subtle {
+  color: var(--muted);
+}
+
+.note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.92em;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 16px;
+}
+
+.toolbar .spacer {
+  flex: 1;
+}
+
+button {
+  padding: 4px 10px;
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 2px;
+  color: var(--vscode-button-secondaryForeground);
+  background: var(--vscode-button-secondaryBackground);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+button[aria-pressed='true'] {
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+}
+
+button:focus-visible,
+select:focus-visible,
+a:focus-visible,
+.hit:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+}
+
+select {
+  max-width: 280px;
+  padding: 3px 6px;
+  border: 1px solid var(--vscode-dropdown-border, var(--line));
+  color: var(--vscode-dropdown-foreground);
+  background: var(--vscode-dropdown-background);
+  font: inherit;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  color: var(--vscode-textLink-foreground);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.link:hover {
+  background: none;
+  text-decoration: underline;
+}
+
+.clamp {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.banner {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--vscode-editorWarning-foreground, var(--line));
+  background: var(--surface-raised);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.tile {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.tile .label {
+  color: var(--muted);
+  font-size: 0.92em;
+}
+
+.tile .value {
+  margin-top: 2px;
+  font-size: 1.6em;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.tile .detail {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.88em;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 0 32px;
+}
+
+.chart {
+  width: 100%;
+  /* 描き直しの間に高さが縮むと、スクロール位置が戻ってしまう */
+  min-height: 170px;
+}
+
+.chart svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.chart .grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.chart .tick {
+  fill: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart .bar {
+  fill: var(--mark);
+}
+
+.chart .hit {
+  fill: transparent;
+  outline: none;
+}
+
+.chart .column:hover .bar,
+.chart .column:focus-within .bar {
+  fill: var(--vscode-charts-foreground, var(--ink));
+}
+
+.chart .hit:focus-visible {
+  stroke: var(--vscode-focusBorder);
+}
+
+#tooltip {
+  position: fixed;
+  z-index: 10;
+  max-width: 320px;
+  padding: 6px 10px;
+  border: 1px solid var(--vscode-editorHoverWidget-border, var(--line));
+  border-radius: 3px;
+  color: var(--vscode-editorHoverWidget-foreground, var(--ink));
+  background: var(--vscode-editorHoverWidget-background, var(--vscode-editor-background));
+  font-size: 0.92em;
+  pointer-events: none;
+}
+
+#tooltip .tip-title {
+  color: var(--muted);
+}
+
+#tooltip .tip-value {
+  font-weight: 600;
+}
+
+details {
+  margin-top: 8px;
+}
+
+summary {
+  color: var(--muted);
+  font-size: 0.92em;
+  cursor: pointer;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 5px 10px 5px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: var(--muted);
+  font-size: 0.92em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+tr.highlight td {
+  background: var(--vscode-editor-findMatchHighlightBackground, var(--vscode-list-hoverBackground));
+}
+
+tfoot td {
+  border-bottom: 0;
+  font-weight: 600;
+}
+
+th.sorted {
+  color: var(--ink);
+}
+
+th button {
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+  font: inherit;
+}
+
+th button:hover {
+  background: none;
+  color: var(--ink);
+}
+
+th.num,
+td.num {
+  padding-right: 14px;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+td.prompt {
+  min-width: 220px;
+  max-width: 420px;
+  overflow-wrap: anywhere;
+}
+
+td.name {
+  min-width: 160px;
+  overflow-wrap: anywhere;
+}
+
+.meter {
+  height: 4px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: var(--mark);
+}
+
+.badge {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 0.88em;
+}
+
+.empty {
+  margin-top: 32px;
+  color: var(--muted);
+}
+
+.busy {
+  opacity: 0.6;
+}
+
+@media (forced-colors: active) {
+  .chart .bar,
+  .meter {
+    fill: CanvasText;
+    background: CanvasText;
+  }
+}
