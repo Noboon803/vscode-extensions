@@ -6,6 +6,7 @@ VS Code 拡張機能を開発するためのモノレポです。npm workspaces 
 | --- | --- |
 | [Cheatsheet](extensions/cheatsheet/README.md) | VS Code 上にチートシートを表示する |
 | [Extension Audit](extensions/extension-audit/README.md) | インストール済みの拡張機能を、実行せずに静的解析で検査する |
+| [Markdown Viewer](extensions/markdown-viewer/README.md) | ファイルごとに固定され、コメントを書き込める Markdown プレビュー |
 
 ## インストール
 

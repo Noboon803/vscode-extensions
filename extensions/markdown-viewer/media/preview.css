@@ -1,0 +1,342 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  position: relative;
+  color: var(--vscode-editor-foreground);
+  background: var(--vscode-editor-background);
+  font-family: var(--vscode-markdown-font-family, var(--vscode-font-family));
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+button {
+  padding: 2px 8px;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 2px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
+button.secondary,
+header button {
+  color: var(--vscode-button-secondaryForeground);
+  background: var(--vscode-button-secondaryBackground);
+}
+
+button.secondary:hover,
+header button:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+button:focus-visible,
+textarea:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--vscode-editor-background);
+  border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-editorWidget-border, transparent));
+  font-size: 12px;
+}
+
+#path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--vscode-descriptionForeground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+header button {
+  flex: none;
+}
+
+#content {
+  /* 左の余白に + ボタンを出す */
+  max-width: 900px;
+  padding: 16px 32px 64px 36px;
+}
+
+#add-comment {
+  position: absolute;
+  z-index: 1;
+}
+
+#add-comment.block {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  line-height: 1;
+}
+
+#add-comment.selection {
+  box-shadow: 0 2px 8px var(--vscode-widget-shadow, transparent);
+}
+
+/* Markdown */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 1.2em 0 0.5em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h1 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-editorWidget-border, transparent));
+  font-size: 1.9em;
+}
+
+h2 {
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-editorWidget-border, transparent));
+  font-size: 1.5em;
+}
+
+h3 {
+  font-size: 1.25em;
+}
+
+/* リンクで移動したとき、固定ヘッダーの下に隠れないようにする */
+[id] {
+  scroll-margin-top: 48px;
+}
+
+#content > :first-child {
+  margin-top: 0;
+}
+
+p,
+ul,
+ol,
+blockquote,
+pre,
+table {
+  margin: 0 0 0.9em;
+}
+
+ul,
+ol {
+  padding-left: 1.6em;
+}
+
+li > ul,
+li > ol {
+  margin-bottom: 0;
+}
+
+li.task-list-item {
+  list-style: none;
+  margin-left: -1.4em;
+}
+
+a {
+  color: var(--vscode-textLink-foreground);
+}
+
+a:hover {
+  color: var(--vscode-textLink-activeForeground);
+}
+
+img {
+  max-width: 100%;
+}
+
+hr {
+  height: 1px;
+  margin: 1.5em 0;
+  background: var(--vscode-panel-border, var(--vscode-editorWidget-border, currentcolor));
+  border: 0;
+}
+
+blockquote {
+  padding: 0 1em;
+  color: var(--vscode-textBlockQuote-foreground, inherit);
+  border-left: 4px solid var(--vscode-textBlockQuote-border, currentcolor);
+}
+
+code {
+  padding: 0.1em 0.3em;
+  background: var(--vscode-textCodeBlock-background);
+  border-radius: 3px;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 0.92em;
+}
+
+pre {
+  padding: 12px;
+  overflow-x: auto;
+  background: var(--vscode-textCodeBlock-background);
+  border-radius: 4px;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  overflow-wrap: normal;
+}
+
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 4px 10px;
+  border: 1px solid var(--vscode-panel-border, var(--vscode-editorWidget-border, currentcolor));
+}
+
+/* コメント */
+.comment-group {
+  margin: 0 0 0.9em;
+}
+
+.comment-card,
+.comment-form {
+  position: relative;
+  padding: 8px 12px;
+  margin-top: 6px;
+  background: var(--vscode-editorWidget-background);
+  border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border, transparent));
+  border-left: 3px solid var(--vscode-focusBorder);
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.comment-card.flash {
+  animation: flash 1.2s ease-out;
+}
+
+@keyframes flash {
+  from {
+    background: var(--vscode-editor-findMatchHighlightBackground, var(--vscode-editorWidget-background));
+  }
+}
+
+.comment-quote {
+  display: -webkit-box;
+  margin-bottom: 4px;
+  overflow: hidden;
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.comment-text {
+  padding-right: 20px;
+  white-space: pre-wrap;
+}
+
+.comment-stale {
+  margin-top: 4px;
+  color: var(--vscode-editorWarning-foreground);
+  font-size: 12px;
+}
+
+.comment-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  color: var(--vscode-descriptionForeground);
+  background: none;
+}
+
+.comment-remove:hover {
+  color: var(--vscode-foreground);
+  background: var(--vscode-toolbar-hoverBackground, transparent);
+}
+
+.comment-form textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 4px 6px;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 2px;
+  font: inherit;
+  resize: vertical;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.error {
+  color: var(--vscode-errorForeground);
+}
+
+/* 構文ハイライト */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal {
+  color: var(--vscode-symbolIcon-keywordForeground, var(--vscode-editor-foreground));
+}
+
+.hljs-built_in,
+.hljs-title,
+.hljs-section {
+  color: var(--vscode-symbolIcon-functionForeground, var(--vscode-editor-foreground));
+}
+
+.hljs-string,
+.hljs-regexp {
+  color: var(--vscode-debugTokenExpression-string, var(--vscode-editor-foreground));
+}
+
+.hljs-number {
+  color: var(--vscode-debugTokenExpression-number, var(--vscode-editor-foreground));
+}
+
+.hljs-variable,
+.hljs-template-variable,
+.hljs-attr,
+.hljs-attribute {
+  color: var(--vscode-symbolIcon-variableForeground, var(--vscode-editor-foreground));
+}
+
+.hljs-comment,
+.hljs-meta {
+  color: var(--vscode-descriptionForeground);
+  font-style: italic;
+}
