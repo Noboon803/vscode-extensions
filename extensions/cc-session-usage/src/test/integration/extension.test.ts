@@ -115,5 +115,11 @@ suite('CC Session Usage', () => {
     });
     await vscode.commands.executeCommand('ccSessionUsage.openSession', key);
     assert.strictEqual(await rendered, 1);
+
+    // 分析結果を含むレポートをファイルに書き出す
+    const target = vscode.Uri.file(join(await mkdtemp(join(tmpdir(), 'su-report-')), 'report.html'));
+    await api.writeReport(target, { days: null, project: null, sessionKey: key });
+    const html = new TextDecoder().decode(await vscode.workspace.fs.readFile(target));
+    assert.ok(html.includes('誤りの指摘') && html.includes('それは違う'));
   });
 });

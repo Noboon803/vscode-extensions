@@ -1,4 +1,7 @@
+import * as os from 'node:os';
 import * as vscode from 'vscode';
+import { PRICES_AS_OF } from './pricing';
+import { buildReport, type ReportFilter, reportFileName } from './report';
 import { ReviewService, type RunReport } from './reviewService';
 import type { ReviewSnapshot, UsageSnapshot } from './types';
 import { UsagePanel } from './usagePanel';
@@ -10,6 +13,8 @@ export interface SessionUsageApi {
   onDidRender: vscode.Event<number>;
   onDidChange: vscode.Event<UsageSnapshot>;
   currentTurnLabels(): string[];
+  /** 保存先を尋ねずにレポートを書き出す。テスト用 */
+  writeReport(target: vscode.Uri, filter: ReportFilter): Promise<void>;
   /** 確認の画面を出さずに分析する。テスト用 */
   analyze(): Promise<RunReport>;
   review(): ReviewSnapshot;
@@ -54,6 +59,32 @@ async function runAnalysis(review: ReviewService, usage: UsageService, keys: str
   }
 }
 
+async function writeReport(review: ReviewService, usage: UsageService, target: vscode.Uri, filter: ReportFilter): Promise<void> {
+  const { sessions } = await usage.refresh();
+  await review.reload();
+  const current = review.current();
+  const html = buildReport({ sessions, reviews: current.sessions, pending: current.pending, filter, generatedAt: Date.now(), pricesAsOf: PRICES_AS_OF });
+  await vscode.workspace.fs.writeFile(target, new TextEncoder().encode(html));
+}
+
+/** 保存先を尋ねて書き出す。ブラウザは利用者が選んだときだけ開く */
+async function exportReport(review: ReviewService, usage: UsageService, filter: ReportFilter): Promise<void> {
+  const target = await vscode.window.showSaveDialog({
+    defaultUri: vscode.Uri.joinPath(vscode.Uri.file(os.homedir()), reportFileName(Date.now())),
+    filters: { HTML: ['html'] },
+    title: 'HTML レポートの保存先（発言の内容を含みます）',
+  });
+  if (!target) {
+    return;
+  }
+  await writeReport(review, usage, target, filter);
+  const open = 'ブラウザで開く';
+  const answer = await vscode.window.showInformationMessage(`レポートを保存しました: ${target.fsPath}`, open);
+  if (answer === open) {
+    await vscode.env.openExternal(target);
+  }
+}
+
 export function activate(context: vscode.ExtensionContext): SessionUsageApi {
   const service = new UsageService(context.globalStorageUri.fsPath);
   const review = new ReviewService(context.globalStorageUri.fsPath, service);
@@ -62,7 +93,12 @@ export function activate(context: vscode.ExtensionContext): SessionUsageApi {
       void vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error));
     });
   };
-  const panel = new UsagePanel(context.extensionUri, service, review, (key) => startAnalysis(key ? [key] : undefined));
+  const startExport = (filter: ReportFilter) => {
+    exportReport(review, service, filter).catch((error: unknown) => {
+      void vscode.window.showErrorMessage(`レポートを保存できませんでした: ${error instanceof Error ? error.message : String(error)}`);
+    });
+  };
+  const panel = new UsagePanel(context.extensionUri, service, review, (key) => startAnalysis(key ? [key] : undefined), startExport);
   const views = new UsageViews(service);
   const updateWatching = () => service.setWatching(views.visible || panel.visible);
   context.subscriptions.push(
@@ -73,6 +109,7 @@ export function activate(context: vscode.ExtensionContext): SessionUsageApi {
     vscode.commands.registerCommand('ccSessionUsage.open', () => panel.open()),
     vscode.commands.registerCommand('ccSessionUsage.refresh', () => service.refresh()),
     vscode.commands.registerCommand('ccSessionUsage.analyzeAll', () => startAnalysis(undefined)),
+    vscode.commands.registerCommand('ccSessionUsage.exportReport', () => startExport({ days: null, project: null, sessionKey: null })),
     vscode.commands.registerCommand('ccSessionUsage.openSession', (sessionKey: string, turn?: number) => panel.open({ sessionKey, turn })),
     panel.onDidChangeVisibility(updateWatching),
     views.onDidChangeVisibility(() => {
@@ -96,6 +133,7 @@ export function activate(context: vscode.ExtensionContext): SessionUsageApi {
     onDidRender: panel.onDidRender,
     onDidChange: service.onDidChange,
     currentTurnLabels: () => views.currentItems().map((item) => String(item.label)),
+    writeReport: (target, filter) => writeReport(review, service, target, filter),
     analyze: () => review.analyze(undefined),
     review: () => review.current(),
     onDidRenderReview: panel.onDidRenderReview,

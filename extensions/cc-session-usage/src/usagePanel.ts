@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import * as vscode from 'vscode';
 import { PRICES_AS_OF } from './pricing';
+import type { ReportFilter } from './report';
 import type { ReviewService } from './reviewService';
 import type { UsageService } from './usageService';
 
@@ -8,7 +9,8 @@ type PanelMessage =
   | { type: 'ready' }
   | { type: 'refresh' }
   | { type: 'rendered'; rows: number; reviewItems: number }
-  | { type: 'analyze'; sessionKey?: string };
+  | { type: 'analyze'; sessionKey?: string }
+  | { type: 'exportReport'; days?: unknown; project?: unknown; sessionKey?: unknown };
 
 export interface PanelTarget {
   sessionKey: string;
@@ -38,6 +40,7 @@ export class UsagePanel implements vscode.Disposable {
     private readonly service: UsageService,
     private readonly review: ReviewService,
     private readonly analyze: (sessionKey: string | undefined) => void,
+    private readonly exportReport: (filter: ReportFilter) => void,
   ) {
     this.disposables = [
       service.onDidChange(() => this.send()),
@@ -105,6 +108,12 @@ export class UsagePanel implements vscode.Disposable {
           this.renderedReview.fire(message.reviewItems);
         } else if (message.type === 'analyze') {
           this.analyze(typeof message.sessionKey === 'string' ? message.sessionKey : undefined);
+        } else if (message.type === 'exportReport') {
+          this.exportReport({
+            days: typeof message.days === 'number' ? message.days : null,
+            project: typeof message.project === 'string' ? message.project : null,
+            sessionKey: typeof message.sessionKey === 'string' ? message.sessionKey : null,
+          });
         }
       }),
       // 実行中のセッションは増え続けるので、画面に戻ったら読み直す

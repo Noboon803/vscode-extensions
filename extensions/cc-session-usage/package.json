@@ -39,6 +39,11 @@
         "command": "ccSessionUsage.analyzeAll",
         "title": "未分析のターンから指摘と質問を分析",
         "category": "CC Session Usage"
+      },
+      {
+        "command": "ccSessionUsage.exportReport",
+        "title": "HTML レポートを出力",
+        "category": "CC Session Usage"
       }
     ],
     "menus": {

@@ -285,6 +285,11 @@ function renderTabs() {
   );
 }
 
+/** レポートは今見ている範囲で出力する */
+function exportButton(filter) {
+  return h('button', { type: 'button', title: '今表示している範囲を、決まった形式の HTML ファイルに保存します', onClick: () => vscode.postMessage({ type: 'exportReport', ...filter }) }, 'HTML レポートを出力');
+}
+
 function pendingTotal() {
   return Object.values(state.review?.pending ?? {}).reduce((sum, count) => sum + count, 0);
 }
@@ -417,6 +422,7 @@ function renderReviewOverview() {
         },
       }),
       h('span', { className: 'spacer' }),
+      exportButton({ days: null, project: snapshot.sessions.some((session) => session.projectDir === state.project) ? state.project : null }),
       h('button', { type: 'button', disabled: pending === 0 || Boolean(review?.busy), title: '実行前に費用の目安を確認します', onClick: () => vscode.postMessage({ type: 'analyze' }) }, pending > 0 ? `未分析のターン ${pending} 件を分析` : '未分析のターンなし'),
     ),
     h('section', { id: 'review-list' }, reviewListNodes()),
@@ -508,6 +514,7 @@ function renderOverview() {
       ),
       h('span', { className: 'spacer' }),
       snapshot.updatedAt ? h('span', { className: 'subtle' }, `更新 ${formatTime(snapshot.updatedAt)}`) : null,
+      exportButton({ days: state.days, project: projectFilter }),
       refreshButton(),
     ),
     ...warnings(totals),
@@ -707,6 +714,7 @@ function renderSession(session) {
       turns.length > 0
         ? h('button', { type: 'button', onClick: () => document.getElementById('session-review')?.scrollIntoView() }, `指摘と質問（${state.review?.sessions[sessionKey(session)]?.items.length ?? 0} 件）へ移動`)
         : null,
+      exportButton({ sessionKey: sessionKey(session) }),
       refreshButton(),
     ),
     h('h1', {}, sessionTitle(session)),
