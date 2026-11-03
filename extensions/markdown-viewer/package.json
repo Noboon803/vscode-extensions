@@ -60,12 +60,122 @@
         "viewType": "markdownViewer.editor",
         "displayName": "Markdown Viewer",
         "selector": [
-          { "filenamePattern": "*.md" },
-          { "filenamePattern": "*.markdown" }
+          {
+            "filenamePattern": "*.md"
+          },
+          {
+            "filenamePattern": "*.markdown"
+          }
         ],
         "priority": "option"
       }
     ],
+    "configuration": {
+      "title": "Markdown Viewer",
+      "properties": {
+        "markdownViewer.styles": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "プレビューのスタイルを要素ごとに指定します。要素は `document`, `h1`, `h2`, `h3`, `h4`, `h5`, `h6`, `paragraph`, `list`, `listItem`, `blockquote`, `inlineCode`, `codeBlock`, `table`, `tableHeader`, `tableCell`, `hr`, `link`, `bold`, `italic` です。例: `{ \"h1\": { \"color\": \"#ff8800\", \"fontSize\": 32 }, \"paragraph\": { \"lineHeight\": 2 } }`",
+          "propertyNames": {
+            "enum": [
+              "document",
+              "h1",
+              "h2",
+              "h3",
+              "h4",
+              "h5",
+              "h6",
+              "paragraph",
+              "list",
+              "listItem",
+              "blockquote",
+              "inlineCode",
+              "codeBlock",
+              "table",
+              "tableHeader",
+              "tableCell",
+              "hr",
+              "link",
+              "bold",
+              "italic"
+            ]
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "color": {
+                "type": "string",
+                "description": "文字色（水平線は線の色）。例: #ff8800"
+              },
+              "backgroundColor": {
+                "type": "string",
+                "description": "背景色"
+              },
+              "fontFamily": {
+                "type": "string",
+                "description": "フォント。例: Hiragino Sans, sans-serif"
+              },
+              "fontSize": {
+                "type": [
+                  "string",
+                  "number"
+                ],
+                "description": "文字サイズ。数値は px。例: 24, 1.5em"
+              },
+              "fontWeight": {
+                "type": [
+                  "string",
+                  "number"
+                ],
+                "description": "太さ。例: 700, bold"
+              },
+              "fontStyle": {
+                "type": "string",
+                "description": "斜体など。例: italic"
+              },
+              "lineHeight": {
+                "type": [
+                  "string",
+                  "number"
+                ],
+                "description": "行間。数値は文字サイズの倍率。例: 1.8"
+              },
+              "letterSpacing": {
+                "type": [
+                  "string",
+                  "number"
+                ],
+                "description": "文字の間隔。数値は px"
+              },
+              "textDecoration": {
+                "type": "string",
+                "description": "下線など。例: underline, none"
+              },
+              "marginTop": {
+                "type": [
+                  "string",
+                  "number"
+                ],
+                "description": "上の余白。数値は px"
+              },
+              "marginBottom": {
+                "type": [
+                  "string",
+                  "number"
+                ],
+                "description": "下の余白。数値は px"
+              },
+              "borderColor": {
+                "type": "string",
+                "description": "枠線の色（見出しの下線、引用の線、表の罫線）"
+              }
+            }
+          }
+        }
+      }
+    },
     "viewsContainers": {
       "panel": [
         {

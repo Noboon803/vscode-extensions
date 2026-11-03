@@ -19,6 +19,25 @@ let form = null;
 let addTarget = null;
 let isFirstRender = true;
 let hoverTimer = 0;
+const userStyles = new CSSStyleSheet();
+document.adoptedStyleSheets = [userStyles];
+
+/** 設定のスタイルを適用する。CSSOM を通すので CSP に触れず、無効な値も検出できる */
+function applyStyles(rules) {
+  userStyles.replaceSync('');
+  const rejected = [];
+  for (const { selector, declarations } of rules) {
+    const index = userStyles.insertRule(`${selector} {}`, userStyles.cssRules.length);
+    const { style } = userStyles.cssRules[index];
+    for (const { property, value, label } of declarations) {
+      style.setProperty(property, value);
+      if (!style.getPropertyValue(property)) {
+        rejected.push(`${label} = ${value}`);
+      }
+    }
+  }
+  vscode.postMessage({ type: 'stylesApplied', rejected });
+}
 
 function saveState(patch) {
   vscode.setState({ ...vscode.getState(), ...patch });
@@ -354,6 +373,8 @@ window.addEventListener('message', ({ data }) => {
     renderComments();
   } else if (data.type === 'showComment') {
     showComment(data.id);
+  } else if (data.type === 'styles') {
+    applyStyles(data.rules);
   } else if (data.type === 'showLine') {
     showLine(data.line);
   }

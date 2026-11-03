@@ -43,6 +43,35 @@ VS Code 標準のプレビューとの違いは次のとおりです。
 
 ソースを編集して行がずれると、コメントは同じ内容の行へ自動で追従します。対象の行そのものを書き換えると元の位置に留まり、`変更あり` と表示します。元の内容に戻すと表示は消えます。
 
+## スタイルの設定
+
+設定 `markdownViewer.styles` で、要素ごとに色、フォント、行間などを指定できます。`settings.json` に書き、保存すると開いているプレビューにすぐ反映されます。
+
+```jsonc
+"markdownViewer.styles": {
+  "document": { "fontFamily": "Hiragino Sans, sans-serif", "lineHeight": 1.8 },
+  "h1": { "color": "#ff8800", "fontSize": 32, "marginBottom": 16 },
+  "h2": { "color": "#4daafc", "borderColor": "#4daafc" },
+  "paragraph": { "lineHeight": 2 },
+  "hr": { "color": "#888888" },
+  "tableHeader": { "backgroundColor": "#333333", "fontWeight": 700 }
+}
+```
+
+| 要素 | 対象 |
+| --- | --- |
+| `document` | 文書全体（ほかの要素に引き継がれます） |
+| `h1` ～ `h6` | 見出し（`#` ～ `######`） |
+| `paragraph` | 段落 |
+| `list`、`listItem` | リスト全体、リストの項目 |
+| `blockquote` | 引用（`>`） |
+| `inlineCode`、`codeBlock` | 文中のコード、コードブロック |
+| `table`、`tableHeader`、`tableCell` | 表、表の見出し、表のセル |
+| `hr` | 水平線（`---`） |
+| `link`、`bold`、`italic` | リンク、太字、斜体 |
+
+指定できるのは `color`、`backgroundColor`、`fontFamily`、`fontSize`、`fontWeight`、`fontStyle`、`lineHeight`、`letterSpacing`、`textDecoration`、`marginTop`、`marginBottom`、`borderColor` です。値は CSS の書き方で、`fontSize`、`letterSpacing`、`marginTop`、`marginBottom` の数値は px になります。無効な値は適用されず、警告で知らせます。
+
 ## 表示できる内容
 
 CommonMark と GFM の表、タスクリスト、リンクの自動認識、コードの構文ハイライトに対応しています。HTML も書けますが、スクリプトは実行せず、`style` と `form` は取り除きます。

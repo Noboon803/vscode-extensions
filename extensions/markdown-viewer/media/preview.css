@@ -175,7 +175,8 @@ img {
 hr {
   height: 1px;
   margin: 1.5em 0;
-  background: var(--vscode-panel-border, var(--vscode-editorWidget-border, currentcolor));
+  color: var(--vscode-panel-border, var(--vscode-editorWidget-border, inherit));
+  background: currentcolor;
   border: 0;
 }
 
@@ -198,11 +199,16 @@ pre {
   overflow-x: auto;
   background: var(--vscode-textCodeBlock-background);
   border-radius: 4px;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 0.92em;
 }
 
+/* 設定のフォントが効くよう、pre の指定を引き継ぐ */
 pre code {
   padding: 0;
   background: none;
+  font-family: inherit;
+  font-size: inherit;
   overflow-wrap: normal;
 }
 

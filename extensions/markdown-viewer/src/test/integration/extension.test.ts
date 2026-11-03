@@ -123,6 +123,24 @@ suite('Markdown Viewer', () => {
     await assertPreviewTabs([]);
   });
 
+  test('設定のスタイルを本物の Webview が受け取り、無効な値だけを報告する', async () => {
+    const preview = api.previews.open(a);
+    await waitUntil(() => preview.isReady);
+    const config = vscode.workspace.getConfiguration('markdownViewer');
+    try {
+      await config.update(
+        'styles',
+        { h1: { color: 'not-a-color', fontSize: 40 }, hr: { color: '#ff0000' } },
+        vscode.ConfigurationTarget.Global,
+      );
+      await waitUntil(() => preview.rejectedStyles.length > 0);
+      assert.deepStrictEqual(preview.rejectedStyles, ['h1.color = not-a-color']);
+    } finally {
+      await config.update('styles', undefined, vscode.ConfigurationTarget.Global);
+    }
+    await waitUntil(() => preview.rejectedStyles.length === 0);
+  });
+
   test('本物の Webview でスクリプトが動く', async () => {
     const preview = api.previews.open(a);
     await waitUntil(() => preview.isReady);

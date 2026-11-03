@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import * as vscode from 'vscode';
 import { type CommentStore, type NewComment } from './comments';
 import { renderMarkdown } from './markdownRenderer';
+import { buildStyleRules } from './styles';
 
 type PreviewMessage =
   | { type: 'ready' }
@@ -9,7 +10,8 @@ type PreviewMessage =
   | { type: 'removeComment'; id: string }
   | { type: 'openLink'; href: string }
   | { type: 'openSource' }
-  | { type: 'showComments' };
+  | { type: 'showComments' }
+  | { type: 'stylesApplied'; rejected: string[] };
 
 const REFRESH_DELAY_MS = 200;
 
@@ -42,6 +44,8 @@ export class PreviewManager implements vscode.Disposable {
 
   private readonly previews = new Map<string, Set<Preview>>();
   private readonly timers = new Map<string, NodeJS.Timeout>();
+  /** プレビューの数だけ同じ警告が出ないよう、知らせた内容を覚えておく */
+  private readonly reportedStyleIssues = new Set<string>();
   private readonly disposables: vscode.Disposable[];
 
   constructor(
@@ -53,6 +57,12 @@ export class PreviewManager implements vscode.Disposable {
       // 保存せずに閉じると内容がディスクの状態へ戻る
       vscode.workspace.onDidCloseTextDocument((document) => this.scheduleRefresh(document.uri)),
       comments.onDidChange(() => this.sendComments()),
+      vscode.workspace.onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration('markdownViewer.styles')) {
+          this.reportedStyleIssues.clear();
+          this.previews.forEach((previews) => previews.forEach((preview) => preview.sendStyles()));
+        }
+      }),
       // 「エディターを選択して開く」の一覧から選べるようにする
       vscode.window.registerCustomEditorProvider(
         PreviewManager.editorViewType,
@@ -108,7 +118,14 @@ export class PreviewManager implements vscode.Disposable {
   }
 
   private attach(panel: vscode.WebviewPanel, uri: vscode.Uri): Preview {
-    const preview = new Preview(panel, uri, this.extensionUri, this.comments, (target) => this.open(target));
+    const preview = new Preview(
+      panel,
+      uri,
+      this.extensionUri,
+      this.comments,
+      (target) => this.open(target),
+      (issues) => this.reportStyleIssues(issues),
+    );
     const key = uri.toString();
     const previews = this.previews.get(key) ?? new Set();
     this.previews.set(key, previews.add(preview));
@@ -119,6 +136,14 @@ export class PreviewManager implements vscode.Disposable {
       }
     });
     return preview;
+  }
+
+  private reportStyleIssues(issues: string[]): void {
+    const unreported = issues.filter((issue) => !this.reportedStyleIssues.has(issue));
+    unreported.forEach((issue) => this.reportedStyleIssues.add(issue));
+    if (unreported.length > 0) {
+      void vscode.window.showWarningMessage(`Markdown Viewer: 無効なスタイルの値です（${unreported.join('、')}）`);
+    }
   }
 
   private scheduleRefresh(uri: vscode.Uri): void {
@@ -144,6 +169,7 @@ export class PreviewManager implements vscode.Disposable {
 class Preview implements vscode.Disposable {
   private ready = false;
   private pendingMessage: object | undefined;
+  private rejected: string[] = [];
   private readonly disposables: vscode.Disposable[] = [];
 
   constructor(
@@ -152,6 +178,7 @@ class Preview implements vscode.Disposable {
     private readonly extensionUri: vscode.Uri,
     private readonly comments: CommentStore,
     private readonly openPreview: (uri: vscode.Uri) => Preview,
+    private readonly reportStyleIssues: (issues: string[]) => void,
   ) {
     const directory = vscode.Uri.joinPath(uri, '..');
     panel.title = fileName(uri);
@@ -194,6 +221,16 @@ class Preview implements vscode.Disposable {
     this.postWhenReady({ type: 'showComment', id: commentId });
   }
 
+  /** Webview が受け付けなかったスタイルの値 */
+  get rejectedStyles(): string[] {
+    return this.rejected;
+  }
+
+  sendStyles(): void {
+    const styles = vscode.workspace.getConfiguration('markdownViewer', this.uri).get('styles');
+    void this.panel.webview.postMessage({ type: 'styles', rules: buildStyleRules(styles) });
+  }
+
   /** 0 始まりの行を表示する */
   showLine(line: number): void {
     this.postWhenReady({ type: 'showLine', line });
@@ -232,6 +269,7 @@ class Preview implements vscode.Disposable {
 
   private async handleMessage(message: PreviewMessage): Promise<void> {
     if (message.type === 'ready') {
+      this.sendStyles();
       await this.refresh();
       this.ready = true;
       if (this.pendingMessage) {
@@ -247,6 +285,9 @@ class Preview implements vscode.Disposable {
       await this.openLink(message.href);
     } else if (message.type === 'openSource') {
       await vscode.window.showTextDocument(this.uri, { viewColumn: vscode.ViewColumn.Beside });
+    } else if (message.type === 'stylesApplied') {
+      this.rejected = message.rejected;
+      this.reportStyleIssues(message.rejected);
     } else if (message.type === 'showComments') {
       await vscode.commands.executeCommand('markdownViewer.comments.focus');
     }
