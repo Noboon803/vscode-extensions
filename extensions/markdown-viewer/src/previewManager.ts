@@ -3,9 +3,11 @@ import * as vscode from 'vscode';
 import { type CommentStore, type NewComment } from './comments';
 import { renderMarkdown } from './markdownRenderer';
 import { buildStyleRules } from './styles';
+import { nextTheme, normalizeTheme, type PreviewTheme } from './theme';
 
 type PreviewMessage =
   | { type: 'ready' }
+  | { type: 'toggleTheme' }
   | ({ type: 'addComment' } & Omit<NewComment, 'uri'>)
   | { type: 'removeComment'; id: string }
   | { type: 'openLink'; href: string }
@@ -37,6 +39,23 @@ function fileName(uri: vscode.Uri): string {
   return uri.path.slice(uri.path.lastIndexOf('/') + 1);
 }
 
+function readTheme(uri: vscode.Uri): PreviewTheme {
+  return normalizeTheme(vscode.workspace.getConfiguration('markdownViewer', uri).get('theme'));
+}
+
+/** 設定されている場所を書き換える。ユーザー設定だけを変えると、ワークスペースの設定に負けて切り替わらない */
+async function toggleTheme(uri: vscode.Uri): Promise<void> {
+  const config = vscode.workspace.getConfiguration('markdownViewer', uri);
+  const inspected = config.inspect('theme');
+  const target =
+    inspected?.workspaceFolderValue !== undefined
+      ? vscode.ConfigurationTarget.WorkspaceFolder
+      : inspected?.workspaceValue !== undefined
+        ? vscode.ConfigurationTarget.Workspace
+        : vscode.ConfigurationTarget.Global;
+  await config.update('theme', nextTheme(readTheme(uri)), target);
+}
+
 /** プレビューは開いたときのファイルに固定する。アクティブなエディターにもスクロールにも追従しない */
 export class PreviewManager implements vscode.Disposable {
   static readonly viewType = 'markdownViewer.preview';
@@ -61,6 +80,9 @@ export class PreviewManager implements vscode.Disposable {
         if (event.affectsConfiguration('markdownViewer.styles')) {
           this.reportedStyleIssues.clear();
           this.previews.forEach((previews) => previews.forEach((preview) => preview.sendStyles()));
+        }
+        if (event.affectsConfiguration('markdownViewer.theme')) {
+          this.previews.forEach((previews) => previews.forEach((preview) => preview.sendTheme()));
         }
       }),
       // 「エディターを選択して開く」の一覧から選べるようにする
@@ -231,6 +253,10 @@ class Preview implements vscode.Disposable {
     void this.panel.webview.postMessage({ type: 'styles', rules: buildStyleRules(styles) });
   }
 
+  sendTheme(): void {
+    void this.panel.webview.postMessage({ type: 'theme', theme: readTheme(this.uri) });
+  }
+
   /** 0 始まりの行を表示する */
   showLine(line: number): void {
     this.postWhenReady({ type: 'showLine', line });
@@ -269,6 +295,7 @@ class Preview implements vscode.Disposable {
 
   private async handleMessage(message: PreviewMessage): Promise<void> {
     if (message.type === 'ready') {
+      this.sendTheme();
       this.sendStyles();
       await this.refresh();
       this.ready = true;
@@ -288,6 +315,8 @@ class Preview implements vscode.Disposable {
     } else if (message.type === 'stylesApplied') {
       this.rejected = message.rejected;
       this.reportStyleIssues(message.rejected);
+    } else if (message.type === 'toggleTheme') {
+      await toggleTheme(this.uri);
     } else if (message.type === 'showComments') {
       await vscode.commands.executeCommand('markdownViewer.comments.focus');
     }
@@ -336,8 +365,9 @@ class Preview implements vscode.Disposable {
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'dist', 'webview', 'preview.js'));
     const csp = `default-src 'none'; img-src ${webview.cspSource} https: data:; style-src ${webview.cspSource}; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';`;
 
+    // 最初の描画から設定の配色にして、ちらつかないようにする
     return `<!doctype html>
-<html lang="ja">
+<html lang="ja" data-theme="${readTheme(this.uri)}">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="${csp}">
@@ -347,6 +377,7 @@ class Preview implements vscode.Disposable {
 <body>
   <header>
     <span id="path"></span>
+    <button id="toggle-theme" type="button" title="配色を切り替える（自動 → ライト → ダーク）">テーマ</button>
     <button id="open-source" type="button">ソースを開く</button>
     <button id="show-comments" type="button">コメント</button>
   </header>

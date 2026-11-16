@@ -73,6 +73,21 @@
     "configuration": {
       "title": "Markdown Viewer",
       "properties": {
+        "markdownViewer.theme": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "light",
+            "dark"
+          ],
+          "enumDescriptions": [
+            "VS Code のテーマに合わせる",
+            "VS Code のテーマに関わらずライトで表示する",
+            "VS Code のテーマに関わらずダークで表示する"
+          ],
+          "markdownDescription": "プレビューの配色です。プレビュー上部の `テーマ` ボタンでも切り替えられます。"
+        },
         "markdownViewer.styles": {
           "type": "object",
           "default": {},
