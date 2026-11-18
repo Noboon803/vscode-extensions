@@ -6,6 +6,7 @@ const content = document.getElementById('content');
 const pathLabel = document.getElementById('path');
 const commentsButton = document.getElementById('show-comments');
 const addButton = document.getElementById('add-comment');
+const themeButton = document.getElementById('toggle-theme');
 
 const NEW_COMMENT_QUOTE_LENGTH = 200;
 const HOVER_DELAY_MS = 120;
@@ -38,6 +39,16 @@ function applyStyles(rules) {
   }
   vscode.postMessage({ type: 'stylesApplied', rejected });
 }
+
+const THEME_LABELS = { auto: '自動', light: 'ライト', dark: 'ダーク' };
+
+/** auto のときは VS Code が渡す配色の変数をそのまま使う */
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  themeButton.textContent = `テーマ: ${THEME_LABELS[theme] ?? THEME_LABELS.auto}`;
+}
+
+applyTheme(document.documentElement.dataset.theme);
 
 function saveState(patch) {
   vscode.setState({ ...vscode.getState(), ...patch });
@@ -333,6 +344,7 @@ content.addEventListener('click', (event) => {
 
 document.getElementById('open-source').addEventListener('click', () => vscode.postMessage({ type: 'openSource' }));
 commentsButton.addEventListener('click', () => vscode.postMessage({ type: 'showComments' }));
+themeButton.addEventListener('click', () => vscode.postMessage({ type: 'toggleTheme' }));
 
 let scrollFrame = 0;
 window.addEventListener('scroll', () => {
@@ -373,6 +385,8 @@ window.addEventListener('message', ({ data }) => {
     renderComments();
   } else if (data.type === 'showComment') {
     showComment(data.id);
+  } else if (data.type === 'theme') {
+    applyTheme(data.theme);
   } else if (data.type === 'styles') {
     applyStyles(data.rules);
   } else if (data.type === 'showLine') {
